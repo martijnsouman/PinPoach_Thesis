@@ -127,3 +127,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+## My additions:
+# single gunshot .wav files from UrbanSound8K
+Data/gunshots/  
+# split background noise .wav files
+Data/SplitFiles/
+# UrbanSound8K
+Data/UrbanSound8K/
+# Youtube .wav files
+Data/YouTube/
