@@ -4,11 +4,11 @@ from ml.models import *
 from ml.abstractmodels import * 
 from libhelpers import *
 import os
-experimentName = "HyperCNN-n20"
+experimentName = "Test1_n2"
 
 #Paths
-datasetOutputPath = "dataset/n20/"
-modelsPath = "models/" + experimentName
+datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/Test1"
+modelsPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/ml-test/src/models/" + experimentName
 plotOutputPath = modelsPath + "/plots/"   # For more insights into what predictions were wrong
 optimizedOutputPath = "optimized_output/" + experimentName
 waveOutputPath = modelsPath + "/samples/"
@@ -17,7 +17,7 @@ waveOutputPath = modelsPath + "/samples/"
 #Variables
 verbose = True
 seed = 1
-nSize = 20 # number of tracks from the each background noise, to creat a dataset 20 is OK, bu 100 (or even 200) is for better predictions
+nSize = 2 # number of tracks from the each background noise, to creat a dataset 20 is OK, bu 100 (or even 200) is for better predictions
 # If 20, it would create 20 tracks with gunshot and 20 tracks without gunshot for each background noise. (np^2)
 
 oneDimensionalSignals = False
@@ -190,41 +190,41 @@ def main():
     # This is a normal CNN model, start with this
 
     # Training a (pre-defined parameters) CNN model
-    # hypermodel = modelFactory.getCNNModel(experimentName)
-    # if not hypermodel.load():
-    #     hp = HyperParameters()
-    #     hypermodel.build()
-    #     hypermodel.train(xTrain, yTrain, epoch_count=100, epochs_patience=25, batch_size=8)
-    #     hypermodel.store()
-    #     CNNModel.plotTrainingHistory(hypermodel, os.path.join(plotOutputPath,"training_history.png"))
+    hypermodel = modelFactory.getCNNModel(experimentName)
+    if not hypermodel.load():
+        hp = HyperParameters()
+        hypermodel.build()
+        hypermodel.train(xTrain, yTrain, epoch_count=100, epochs_patience=25, batch_size=8)
+        hypermodel.store()
+        CNNModel.plotTrainingHistory(hypermodel, os.path.join(plotOutputPath,"training_history.png"))
              
     # Fancy model
 
     # Training a HyperCNN model
-    hypermodel = modelFactory.getCNNHyperModel(experimentName)
-    if not hypermodel.load():
-        # Setup the optimizer
-        opt = HyperModelOptimizer(
-                hypermodel,
-                optimizedOutputPath,
-                xTrain, yTrain,
-                xTest, yTest,
-                max_model_size=2000000,
-                max_flatten_layer_size=2000,
-                epoch_count=100,
-                val_split=0.2,
-                epochs_patience=20,
-                batch_size=32,
-                fixed_seed=seed)
+    #hypermodel = modelFactory.getCNNHyperModel(experimentName)
+    #if not hypermodel.load():
+    #    # Setup the optimizer
+    #    opt = HyperModelOptimizer(
+    #            hypermodel,
+    #            optimizedOutputPath,
+    #            xTrain, yTrain,
+    #            xTest, yTest,
+    #            max_model_size=2000000,
+    #            max_flatten_layer_size=2000,
+    #            epoch_count=100,
+    #            val_split=0.2,
+    #            epochs_patience=20,
+    #            batch_size=32,
+    #            fixed_seed=seed)
 
-        # Optimize the model
-        # opt.optimize(trials=100, use_custom_tuner=True)
-        opt.evolve(generations=5, population_size=20)  # This creates 100 models from which 1 will be the optimal (beste accuracy)
+    #    # Optimize the model
+    #    # opt.optimize(trials=100, use_custom_tuner=True)
+    #    opt.evolve(generations=5, population_size=20)  # This creates 100 models from which 1 will be the optimal (beste accuracy)
         
-        # Get the results of the optimization steps 
-        hypermodel, params = opt.getResults()
+    #    # Get the results of the optimization steps 
+    #    hypermodel, params = opt.getResults()
     
-        hypermodel.store()    
+    #    hypermodel.store()    
 
 
     # Plot the model and confusion matrix

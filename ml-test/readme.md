@@ -1,6 +1,6 @@
 # Machine learning test
 
-This folder contains the source code and testing project for the machine learning algorithm using the dataset downloaded by dataset-dl.
+This folder contains the source code and testing project for the machine learning algorithm using the dataset downloaded by dataset-gather.ipynb.
 
 ## Dependencies
 
