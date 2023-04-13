@@ -1,8 +1,11 @@
 from ..abstractmodels import * 
 from ..parameters import *
 
-from kerastuner import HyperModel
-from kerastuner import HyperParameters as hp
+#import keras_tuner
+from keras_tuner import HyperParameters as hp
+from keras_tuner import HyperModel
+#from kerastuner import HyperModel
+#from kerastuner import HyperParameters as hp
 
 ## AbstractHyperModel class
 # 
@@ -48,7 +51,7 @@ class AbstractHyperModel(AbstractModel, HyperModel):
     # @param hp     The keras HyperParameters object
     # @return A keras model build with the specified hyperparamers
     def build(self, hp):
-        params = self._getKerasTunerHyperparameters(hp)
+        params = self._getKerasTunerHyperparameters(hp)  
         return self.buildModel(params)
 
 

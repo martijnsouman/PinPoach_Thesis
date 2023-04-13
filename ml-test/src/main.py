@@ -4,21 +4,23 @@ from ml.models import *
 from ml.abstractmodels import * 
 from libhelpers import *
 import os
-experimentName = "Test1_n2"
+experimentName = "Test3_n200"
 
 #Paths
-datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/Test1"
+datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/Test3"
 modelsPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/ml-test/src/models/" + experimentName
 plotOutputPath = modelsPath + "/plots/"   # For more insights into what predictions were wrong
-optimizedOutputPath = "optimized_output/" + experimentName
+optimizedOutputPath = modelsPath + "/optimized_output/" 
 waveOutputPath = modelsPath + "/samples/"
 
 
 #Variables
 verbose = True
 seed = 1
-nSize = 2 # number of tracks from the each background noise, to creat a dataset 20 is OK, bu 100 (or even 200) is for better predictions
-# If 20, it would create 20 tracks with gunshot and 20 tracks without gunshot for each background noise. (np^2)
+nSize = 20 # number of tracks from the each background noise, 
+# to creat a dataset 20 is OK, bu 100 (or even 200) is for better predictions
+# If 20, it would create 20 tracks with gunshot and 20 tracks without gunshot 
+# for each background noise. (np^2)
 
 oneDimensionalSignals = False
 
@@ -44,21 +46,21 @@ def loadDataset():
     if not dataHandler.loadData():
         #Layers
         bg_0 = SignalLayer(  # Savanna day and night are the "empty" signals, because it is never silent
-            directory = "../../dataset-dl/african_savanna_day",  # Hard code this
+            directory = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/SplitFiles/african_savanna_day", # Hard code this
             fixed_duration=10,
             amplitude_scale=1,  # This is now linear
             amplitude_deviation=0.5
         )
 
         bg_1 = SignalLayer(
-            directory = "../../dataset-dl/african_savanna_night", # and this
+            directory = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/SplitFiles/african_savanna_night", # and this
             fixed_duration=10,
             amplitude_scale=1,
             amplitude_deviation=0.5
         )
 
         rain = SignalLayer(
-            directory="../../dataset-dl/rain",
+            directory="C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/SplitFiles/rain",
             fixed_duration=10,
             timeshift_max=5,  
             amplitude_scale=1,
@@ -66,7 +68,7 @@ def loadDataset():
         )
 
         thunder = SignalLayer(
-            directory="../../dataset-dl/thunder",
+            directory="C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/SplitFiles/thunder",
             fixed_duration=10,
             timeshift_max=5,
             amplitude_scale=1,
@@ -74,7 +76,7 @@ def loadDataset():
         )
 
         single_shots = SignalLayer(  # 50% will have a gunshot and the other half won't
-            directory="../../dataset-dl/single_shots",
+            directory="C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/SplitFiles/single_shots",
             fixed_duration=10,
             timeshift_bias=0,
             timeshift_max=3.2,
@@ -160,7 +162,7 @@ def findCorrelations(model, xTest, yTest, layerTest):
 
 def main():
     # Setup libraries 
-    setUseGPU(True)    # You can change this
+    setUseGPU(False)    # You can change this
     setSeed(seed)
 
     # Create directories
@@ -175,28 +177,31 @@ def main():
 
     # Get labeled data
     xData, yData, layerData = dataHandler.getBinaryLabeledData(["single_shots"])
+    print("XData: ", xData)
+    print("yData: ", yData)
+    print("layerData: ", layerData)
 
     # From here on the training starts
 
     # Split the dataset
-    xTest, yTest, xTrain, yTrain, layerTest, layerTrain = dataHandler.splitInputAndOutputLists(xData, yData, layerData)
+    #xTest, yTest, xTrain, yTrain, layerTest, layerTrain = dataHandler.splitInputAndOutputLists(xData, yData, layerData)
 
     # Setup the model factory
-    modelFactory = ModelFactory(
-            modelsPath, 
-            input_shape=np.shape(xTrain)[1:], 
-            verbose=verbose)
+    #modelFactory = ModelFactory(
+    #        modelsPath, 
+    #        input_shape=np.shape(xTrain)[1:], 
+    #        verbose=verbose)
 
     # This is a normal CNN model, start with this
 
     # Training a (pre-defined parameters) CNN model
-    hypermodel = modelFactory.getCNNModel(experimentName)
-    if not hypermodel.load():
-        hp = HyperParameters()
-        hypermodel.build()
-        hypermodel.train(xTrain, yTrain, epoch_count=100, epochs_patience=25, batch_size=8)
-        hypermodel.store()
-        CNNModel.plotTrainingHistory(hypermodel, os.path.join(plotOutputPath,"training_history.png"))
+    #hypermodel = modelFactory.getCNNModel(experimentName)
+    #if not hypermodel.load():
+    #    hp = HyperParameters()
+    #    hypermodel.build()
+    #    hypermodel.train(xTrain, yTrain, epoch_count=100, epochs_patience=25, batch_size=8)
+    #    hypermodel.store()
+    #    CNNModel.plotTrainingHistory(hypermodel, os.path.join(plotOutputPath,"training_history.png"))
              
     # Fancy model
 
@@ -228,7 +233,7 @@ def main():
 
 
     # Plot the model and confusion matrix
-    evaluateModel(hypermodel, xTest, yTest, layerTest, experimentName)
+    #evaluateModel(hypermodel, xTest, yTest, layerTest, experimentName)
         
     # Find correlations between layers and accuracy
     # findCorrelations(hypermodel, xTest, yTest, layerTest)

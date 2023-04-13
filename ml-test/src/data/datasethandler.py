@@ -24,15 +24,15 @@ class DatasetHandler:
     ## Load the data from the specified path
     # @return               Boolean; depending on whether loading succeeded or failed
     def loadData(self):
-        dataPath = os.path.join(self._analyzedDataPath, "data.npz")
-        layerDataPath = os.path.join(self._analyzedDataPath, "layers.json")
+        dataPath = os.path.join(self._analyzedDataPath, "data.npz") 
+        layerDataPath = os.path.join(self._analyzedDataPath, "layers.json") 
     
         # Check if the files exist
         if (not os.path.isfile(dataPath)) or (not os.path.isfile(layerDataPath)):
             return False
 
         #Load data
-        data = np.array(np.load(dataPath)["data"])
+        data = np.array(np.load(dataPath)["data"]) 
         
         #Load layers data
         with open(layerDataPath, "r") as jsonFile:
