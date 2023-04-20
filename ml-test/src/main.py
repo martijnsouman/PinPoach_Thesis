@@ -4,10 +4,10 @@ from ml.models import *
 from ml.abstractmodels import * 
 from libhelpers import *
 import os
-experimentName = "Test3_n200"
+experimentName = "Test6_n2"
 
 #Paths
-datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/Test3"
+datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/Test6_n2"
 modelsPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/ml-test/src/models/" + experimentName
 plotOutputPath = modelsPath + "/plots/"   # For more insights into what predictions were wrong
 optimizedOutputPath = modelsPath + "/optimized_output/" 
@@ -17,12 +17,12 @@ waveOutputPath = modelsPath + "/samples/"
 #Variables
 verbose = True
 seed = 1
-nSize = 20 # number of tracks from the each background noise, 
+nSize = 2 # number of tracks from the each background noise, 
 # to creat a dataset 20 is OK, bu 100 (or even 200) is for better predictions
 # If 20, it would create 20 tracks with gunshot and 20 tracks without gunshot 
 # for each background noise. (np^2)
 
-oneDimensionalSignals = False
+oneDimensionalSignals = True
 
 labels = {
     "no shot": 0,
@@ -177,9 +177,11 @@ def main():
 
     # Get labeled data
     xData, yData, layerData = dataHandler.getBinaryLabeledData(["single_shots"])
-    print("XData: ", xData)
-    print("yData: ", yData)
-    print("layerData: ", layerData)
+    #print("XData: ", xData)
+    print(xData.shape)  # 1D=True: (32, 20000, 1), 1D=False: (32, 200, 13, 1)
+    print("yData: ", yData)  
+    print(yData.shape) # Alwasy (32,) [0 1 0 1 1 0 0 ...]
+    #print("layerData: ", layerData)
 
     # From here on the training starts
 

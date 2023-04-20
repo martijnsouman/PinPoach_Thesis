@@ -175,13 +175,15 @@ class DataGenerator:
         #Parameters shape=(n layers, n samples)
         self._verbosePrint("Generating layer parameters..")
         timeshiftParams, amplitudeParams = self._generateLayerParameters(layers, self._batchSize)
+        print(timeshiftParams)
+        print(amplitudeParams)
 
 
         #Load batch
         #Filebatch shape = (n layers, n samples)
         #sample batch shape = (n layers, n samples, sample size)
         self._verbosePrint("Loading sample batch..")
-        fileBatch, sampleBatch = self._loadSampleBatch(layers, self._batchSize)
+        fileBatch, sampleBatch = self._loadSampleBatch(layers, self._batchSize)  # HIER IN KIJKEN
 
 
         #Edit samples
@@ -282,7 +284,7 @@ class DataGenerator:
             #Append both parameters to the lists
             layerTimeshiftParams.append(timeshiftParams)
             layerAmplitudeParams.append(amplitudeParams)
-
+        
         return layerTimeshiftParams, layerAmplitudeParams
 
 
@@ -295,19 +297,33 @@ class DataGenerator:
     # @param n              The batch size 
     # @return               layerFiles, layerSamples
     def _loadSampleBatch(self, layers, n):
+        print(layers)
+        print(self._targetSampleLength)
+        print(len(layers))
         layerSamples = np.zeros(
             shape=(len(layers), n, self._targetSampleLength), dtype=np.float32)
+        print(layerSamples)
+        print(layerSamples.shape)
 
+        print(len(layers))
         layerFiles = np.zeros(
             shape=(len(layers), n), dtype=np.object)
+        print(layerFiles)
         
         #Loop through all layers
         for i, layer in enumerate(layers):
+            print(i)
+            print(layer)
             #Get n samples
+            print(self._batchSize)
             for j in range(0, self._batchSize):
+                print(j)
                 filepath = layer.takeFile()
+                print(filepath)
                 layerSamples[i][j] = self._loadSample(filepath)
+                print(layerSamples)
                 layerFiles[i][j] = filepath
+                print(layerFiles)
 
         return layerFiles, layerSamples
 
@@ -322,14 +338,23 @@ class DataGenerator:
     # @return               A numpy array of the loaded signal
     def _loadSample(self, filepath):
         s, fs = librosa.load(filepath, sr=self._targetSampleRate, dtype='float32', mono=True)
+        # s: audio tme series as np.ndarray [shape=(n,) or (…, n)]
+        # fs: sampling rate of s, number > 0 [scalar]
+        print(s)
+        print(s.shape)
+        print(fs)
             
         #Convert to the right size
+        print(len(s))
+        print(self._targetSampleLength)
         sizeDiff = len(s) - self._targetSampleLength
+        print(sizeDiff)
         if sizeDiff > 0:
             s = s[:self._targetSampleLength]
         elif sizeDiff < 0:
             s = np.append(s, np.zeros(shape=-sizeDiff))
         
+        print(s)
         return s
 
     
@@ -448,7 +473,7 @@ class DataGenerator:
     # @return               Numpy array with averaged values
     def _preprocessRawSignals(self, signals):
         newSampleSize = int(self._targetSampleLength / self._signalParams["average_length"])
-
+        
         reshapedSignals = signals.reshape(signals.shape[0], self._signalParams["average_length"], newSampleSize)
         averages = np.average(reshapedSignals, axis=1)
         return np.expand_dims(averages, axis=-1)
@@ -461,15 +486,14 @@ class DataGenerator:
     def _extractMFCCs(self, samples):
         #Convert numpy array to tensor
         samples = tf.convert_to_tensor(samples, dtype=tf.float32)
-
+        
         winSize = int(self._targetSampleRate * (0.001 * self._stftParams["frame_ms"]))
         stepSize = int(self._targetSampleRate * (0.001 * self._stftParams["step_ms"]))
 
-        #Calculate STFT
+        #Calculate STFT (Short-time Fourier Transform) of signals
         stfts = tf.signal.stft(samples, frame_length=winSize, frame_step=stepSize, fft_length=self._stftParams["fft_size"])
-        spectrograms = tf.abs(stfts)
+        spectrograms = tf.abs(stfts) # absolute 
 
-        
         nMelBins = self._mfccsParams["mel_bins"]
         lowerEdgeHz = 0
         upperEdgeHz = self._mfccsParams["max_frequency"]
@@ -477,12 +501,11 @@ class DataGenerator:
         # Warp the linear scale spectrograms into the mel-scale.
         num_spectrogram_bins = stfts.shape[-1]
 
-        linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(
+        linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix( 
             nMelBins, num_spectrogram_bins, self._targetSampleRate, lowerEdgeHz, upperEdgeHz)
 
         mel_spectrograms = tf.tensordot(spectrograms, linear_to_mel_weight_matrix, 1)
         mel_spectrograms.set_shape(spectrograms.shape[:-1].concatenate(linear_to_mel_weight_matrix.shape[-1:]))
-
 
 
         # Compute a stabilized log to get log-magnitude mel-scale spectrograms.
