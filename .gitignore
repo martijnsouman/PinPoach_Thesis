@@ -138,3 +138,5 @@ Data/SplitFiles/
 Data/UrbanSound8K/
 # Youtube .wav files
 Data/YouTube/
+# model parameters
+ml-test/src/models

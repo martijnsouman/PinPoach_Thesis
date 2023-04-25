@@ -175,8 +175,6 @@ class DataGenerator:
         #Parameters shape=(n layers, n samples)
         self._verbosePrint("Generating layer parameters..")
         timeshiftParams, amplitudeParams = self._generateLayerParameters(layers, self._batchSize)
-        print(timeshiftParams)
-        print(amplitudeParams)
 
 
         #Load batch
@@ -186,19 +184,24 @@ class DataGenerator:
         fileBatch, sampleBatch = self._loadSampleBatch(layers, self._batchSize)
         #fileBatch: [[sav.wav0 sav.wav1] [thun.wav0 tun.wav1] [rain.wav0 rain.wav1] [shot.wav0 shot.wav1]]
         #sampleBatch: [[[audio ts sav.wav0] [ts sav.wav1]]
-        #               [ts thun.wav0] [ts thun.wav1] . . . ] 
+        #               [ts thun.wav0] [ts thun.wav1]
+        #               [ts rain.wav0] [ts rain.wav1]
+        #               [ts shot.wav0] [ts shot.wav1]] 
 
 
         #Edit samples
         #Batch shape = (n layers, n samples, sample size)
         self._verbosePrint("Editing sample batch..")
         sampleBatch = self._editSampleBatch(sampleBatch, timeshiftParams, amplitudeParams)
-        #sampleBatch: same as sampleBatch from _loadSampleBatch but altered
+        #sampleBatch: same as sampleBatch from _loadSampleBatch but with altered values
 
 
         #Stack the samples
         self._verbosePrint("Stacking samples..")
         stackedSamples = self._stackSampleBatch(sampleBatch, len(layers), self._batchSize)
+        # stackedSamples: all 4 layers (sav, thun, rain, shot) per sample
+        #               [[ ts sav.wav0 + thun.wav0 + rain.wav0 + shot.wav0]
+        #                [ ts sav.wav1 + thun.wav1 + rain.wav1 + shot.wav1]]
 
         # Check which data to use
         if self._generateAveragedSignals:
@@ -301,33 +304,19 @@ class DataGenerator:
     # @param n              The batch size 
     # @return               layerFiles, layerSamples
     def _loadSampleBatch(self, layers, n):
-        print(layers)
-        print(self._targetSampleLength)
-        print(len(layers))
         layerSamples = np.zeros(
             shape=(len(layers), n, self._targetSampleLength), dtype=np.float32)
-        print(layerSamples)
-        print(layerSamples.shape)
 
-        print(len(layers))
         layerFiles = np.zeros(
             shape=(len(layers), n), dtype=np.object)
-        print(layerFiles)
         
         #Loop through all layers
         for i, layer in enumerate(layers):
-            print(i)
-            print(layer)
             #Get n samples
-            print(self._batchSize)
             for j in range(0, self._batchSize):
-                print(j)
                 filepath = layer.takeFile()
-                print(filepath)
                 layerSamples[i][j] = self._loadSample(filepath)
-                print(layerSamples)
                 layerFiles[i][j] = filepath
-                print(layerFiles)
 
         return layerFiles, layerSamples
 
@@ -344,21 +333,14 @@ class DataGenerator:
         s, fs = librosa.load(filepath, sr=self._targetSampleRate, dtype='float32', mono=True)
         # s: audio time series as np.ndarray [shape=(n,) or (…, n)]
         # fs: sampling rate of s, number > 0 [scalar]
-        print(s)
-        print(s.shape)
-        print(fs)
             
         #Convert to the right size
-        print(len(s))
-        print(self._targetSampleLength)
         sizeDiff = len(s) - self._targetSampleLength
-        print(sizeDiff)
         if sizeDiff > 0:
             s = s[:self._targetSampleLength]
         elif sizeDiff < 0:
             s = np.append(s, np.zeros(shape=-sizeDiff))
-        
-        print(s)
+
         return s
 
     
@@ -370,15 +352,9 @@ class DataGenerator:
     # @return                   The edited samples
     def _editSampleBatch(self, samples, timeshift_params, amplitude_params):
         newSamples = np.copy(samples)
-        print(newSamples)
         for i, layer in enumerate(samples):
-            print(i)
-            print(layer)
             for j, sample in enumerate(layer):
-                print(j)
-                print(sample)
                 newSamples[i][j] = self._editSample(newSamples[i][j], timeshift_params[i][j], amplitude_params[i][j])
-                print(newSamples)
                 
         return newSamples 
 
@@ -393,15 +369,9 @@ class DataGenerator:
     # @param amplitude  The amplitude scale
     # @return           The edited sample
     def _editSample(self, sample, timeshift, amplitude):
-        print(sample)
         sample = self._normalizeSample(sample)  # normalize
-        print(sample)
-        print(timeshift)
         sample = self._timeshiftSample(sample, timeshift)  # shift series
-        print(sample)
-        print(amplitude)
         sample = self._amplitudeScaleSample(sample, amplitude)  # series x amp
-        print(sample)
 
         return sample
 
@@ -460,47 +430,28 @@ class DataGenerator:
     # @param n_samples      The amount of samples to stack 
     # @return               The stacked samples
     def _stackSampleBatch(self, samples, n_layers, n_samples):
-        print(n_samples)
         stackedSamples = np.zeros(shape=(n_samples, self._targetSampleLength))
-        print(stackedSamples)
-        print(stackedSamples.shape)
 
         for j in range(0, n_samples):
-            print(j)
             #Create empty sound
-            print(self._targetSampleLength)
-            print(self._targetSampleRate)
             duration = int(self._targetSampleLength/self._targetSampleRate * 1000)
-            print(duration)
             stackedSound = AudioSegment.silent(duration, self._targetSampleRate)  # create silent audio segment
-            print(stackedSound)
             
             #Stack the signals for each layer
-            print(samples)
-            print(n_layers)
             for i in range(0, n_layers):
-                print(i)
                 scaledSamples = samples[i][j] * 1000
-                print(scaledSamples)
 
                 sound = AudioSegment.silent(duration, self._targetSampleRate)
-                print(sound)
-                print(scaledSamples.astype(int))
                 sound = sound._spawn(array.array(sound.array_type, scaledSamples.astype(int)))  # creates new audio sample
-                print(sound)
 
                 #Overlay the new sound
-                print(stackedSound)
                 stackedSound = stackedSound.overlay(sound)
-                print(stackedSound)
             
             #Set the signal
-            oefen = stackedSound.get_array_of_samples()
+            #oefen = stackedSound.get_array_of_samples()
             #print(stackedSound.get_array_of_samples()) # shape = (480000)
             stackedSamples[j] = self._normalizeSample(stackedSound.get_array_of_samples())
             #.get_array_of_samples(): Returns the raw audio data as an array of (numeric) samples
-            print(stackedSamples[j])
-            print(stackedSamples)
         
         return stackedSamples
 
@@ -514,7 +465,7 @@ class DataGenerator:
         
         reshapedSignals = signals.reshape(signals.shape[0], self._signalParams["average_length"], newSampleSize)
         averages = np.average(reshapedSignals, axis=1)
-        return np.expand_dims(averages, axis=-1)
+        return np.expand_dims(averages, axis=-1)  # change horizontal to vertical axis
 
 
     
