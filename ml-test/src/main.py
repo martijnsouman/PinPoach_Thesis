@@ -4,6 +4,7 @@ from ml.models import *
 from ml.abstractmodels import * 
 from libhelpers import *
 import os
+
 experimentName = "Test6_n2"
 
 #Paths
@@ -178,33 +179,70 @@ def main():
     # Get labeled data
     xData, yData, layerData = dataHandler.getBinaryLabeledData(["single_shots"])
     #print("XData: ", xData)
-    print(xData.shape)  # 1D=True: (32, 20000, 1), 1D=False: (32, 200, 13, 1)
-    print("yData: ", yData)  
-    print(yData.shape) # Alwasy (32,) [0 1 0 1 1 0 0 ...]
+    print("xData.shape: ", xData.shape)  # 1D=True: (32, 20000, 1), 1D=False: (32, 200, 13, 1)
+    print("yData: ", yData)  # [0 1 0 1 1 0 0 ...]
+    print(yData.shape) # Alwasy (32,) 
+    print(type(xData))
     #print("layerData: ", layerData)
 
     # From here on the training starts
 
     # Split the dataset
-    #xTest, yTest, xTrain, yTrain, layerTest, layerTrain = dataHandler.splitInputAndOutputLists(xData, yData, layerData)
+    xTest, yTest, xTrain, yTrain, layerTest, layerTrain = dataHandler.splitInputAndOutputLists(xData, yData, layerData)
+    print("xTest.shape: ", xTest.shape)
+    print("yTest.shape: ", yTest.shape)
+    print("xTrain.shape: ", xTrain.shape)
+    print("yTrain.shape: ", yTrain.shape)
+    print(type(xTest))
+    
+    # Training Simple CNN model
+    Conv1DModel(xTrain, yTrain, xTest, yTest)
 
     # Setup the model factory
+    #print(np.shape(xTrain))
+    #print(np.shape(xTrain)[1:])
     #modelFactory = ModelFactory(
     #        modelsPath, 
     #        input_shape=np.shape(xTrain)[1:], 
     #        verbose=verbose)
 
-    # This is a normal CNN model, start with this
+    # This is a normal CNN model
 
     # Training a (pre-defined parameters) CNN model
     #hypermodel = modelFactory.getCNNModel(experimentName)
     #if not hypermodel.load():
-    #    hp = HyperParameters()
-    #    hypermodel.build()
+    #    hp = HyperParameters()  # instantiate parameters
+    #    hypermodel.build()  # built model with CNNmodel, this does not work for 1D input
     #    hypermodel.train(xTrain, yTrain, epoch_count=100, epochs_patience=25, batch_size=8)
     #    hypermodel.store()
     #    CNNModel.plotTrainingHistory(hypermodel, os.path.join(plotOutputPath,"training_history.png"))
-             
+  
+    # Training a HyperCNN 1D model
+    #hypermodel = modelFactory.getConv1DHyperModel(experimentName)
+    #if not hypermodel.load():
+    #    # Setup the optimizer
+    #    opt = HyperModelOptimizer(
+    #            hypermodel,
+    #            optimizedOutputPath,
+    #            xTrain, yTrain,
+    #            xTest, yTest,
+    #            max_model_size=2000000,
+    #            max_flatten_layer_size=2000,
+    #            epoch_count=100,
+    #            val_split=0.2,
+    #            epochs_patience=20,
+    #            batch_size=32,
+    #            fixed_seed=seed)  
+ 
+        # Optimize the model
+        # opt.optimize(trials=100, use_custom_tuner=True)
+    #    opt.evolve(generations=5, population_size=20)  # This creates 100 models from which 1 will be the optimal (beste accuracy)
+    #    
+    #    # Get the results of the optimization steps 
+    #    hypermodel, params = opt.getResults()
+    
+    #    hypermodel.store()   
+         
     # Fancy model
 
     # Training a HyperCNN model

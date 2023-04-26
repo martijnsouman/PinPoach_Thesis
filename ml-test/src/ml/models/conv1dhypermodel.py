@@ -82,7 +82,7 @@ class Conv1DHyperModel(AbstractHyperModel, AbstractConvolutionalModel):
         self._model.add(kl.Dense(1, activation='sigmoid'))
         
         #Compile the model
-        lr_schedule = ExponentialDecay(
+        lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
                 initial_learning_rate=0.1,
                 decay_steps=10000,
                 decay_rate=0.96,
