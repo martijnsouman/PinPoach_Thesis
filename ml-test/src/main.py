@@ -5,10 +5,10 @@ from ml.abstractmodels import *
 from libhelpers import *
 import os
 
-experimentName = "Test6_n2"
+experimentName = "Test8_n2"
 
 #Paths
-datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/Test6_n2"
+datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/Test8_n2"
 modelsPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/ml-test/src/models/" + experimentName
 plotOutputPath = modelsPath + "/plots/"   # For more insights into what predictions were wrong
 optimizedOutputPath = modelsPath + "/optimized_output/" 
@@ -81,7 +81,7 @@ def loadDataset():
             fixed_duration=10,
             timeshift_bias=0,
             timeshift_max=3.2,
-            amplitude_scale=3,  # signal amplitude 0.5-5.5
+            amplitude_scale=3,  # signal amplitude 
             amplitude_deviation=2.5  # this creates range of scale +- deviation
         )
         
@@ -180,9 +180,8 @@ def main():
     xData, yData, layerData = dataHandler.getBinaryLabeledData(["single_shots"])
     #print("XData: ", xData)
     print("xData.shape: ", xData.shape)  # 1D=True: (32, 20000, 1), 1D=False: (32, 200, 13, 1)
-    print("yData: ", yData)  # [0 1 0 1 1 0 0 ...]
-    print(yData.shape) # Alwasy (32,) 
-    print(type(xData))
+    print("yData.shape: ", yData.shape)  # Alwasy (32,)
+    #print(yData.shape)  # [0 1 0 1 1 0 0 ...] 
     #print("layerData: ", layerData)
 
     # From here on the training starts
@@ -196,11 +195,26 @@ def main():
     print(type(xTest))
     
     # Training Simple CNN model
-    Conv1DModel(xTrain, yTrain, xTest, yTest)
+    
+    # Define convolutional layer range
+    convRange = range(3, 8)
+    # Define dense layer range
+    denseRange = range(5, 0, -1)
+    # Build and train all models in specified ranges
+    MainConv1DModel(
+        modelsPath,
+        convRange, 
+        denseRange, 
+        xTrain, 
+        yTrain, 
+        xTest, 
+        yTest, 
+        layerTrain,
+        labels)
+
+
 
     # Setup the model factory
-    #print(np.shape(xTrain))
-    #print(np.shape(xTrain)[1:])
     #modelFactory = ModelFactory(
     #        modelsPath, 
     #        input_shape=np.shape(xTrain)[1:], 
@@ -219,6 +233,8 @@ def main():
   
     # Training a HyperCNN 1D model
     #hypermodel = modelFactory.getConv1DHyperModel(experimentName)
+    #print(hypermodel)
+    
     #if not hypermodel.load():
     #    # Setup the optimizer
     #    opt = HyperModelOptimizer(
@@ -232,15 +248,17 @@ def main():
     #            val_split=0.2,
     #            epochs_patience=20,
     #            batch_size=32,
-    #            fixed_seed=seed)  
- 
-        # Optimize the model
-        # opt.optimize(trials=100, use_custom_tuner=True)
+    #            fixed_seed=seed,
+    #            verbose=True)  
+    #    print(isinstance(opt._modelWrapper, AbstractHyperModel))
+    #    print(opt)
+    #    # Optimize the model
+    #    opt.optimize(trials=100, use_custom_tuner=True)
     #    opt.evolve(generations=5, population_size=20)  # This creates 100 models from which 1 will be the optimal (beste accuracy)
     #    
     #    # Get the results of the optimization steps 
     #    hypermodel, params = opt.getResults()
-    
+    #
     #    hypermodel.store()   
          
     # Fancy model

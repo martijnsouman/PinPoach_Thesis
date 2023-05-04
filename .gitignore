@@ -130,6 +130,7 @@ dmypy.json
 
 
 ## My additions:
+# Data
 # single gunshot .wav files from UrbanSound8K
 Data/gunshots/  
 # split background noise .wav files
@@ -138,5 +139,9 @@ Data/SplitFiles/
 Data/UrbanSound8K/
 # Youtube .wav files
 Data/YouTube/
+# Datasets for ml
+Data/Dataset
+
+# Model
 # model parameters
 ml-test/src/models

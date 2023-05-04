@@ -16,7 +16,9 @@ class Conv1DHyperModel(AbstractHyperModel, AbstractConvolutionalModel):
 
         #self._parameters.append(ChoiceParameter("optimizer", value="adamax", options=['sgd', 'adam', 'rmsprop', 'adadelta', 'adagrad', 'adamax', 'nadam', 'ftrl']))
         #self._parameters.append(ChoiceParameter("learning_rate", value=1e-2, options=[1e-2, 1e-3, 1e-4]))
-
+        
+        # NumberParameter is part of the Hyper Parameters module of keras-tuner
+        # https://keras.io/api/keras_tuner/hyperparameters/
         self._parameters.append(NumberParameter("num_conv_layers", min_value=1, max_value=maxConvLayers, value=1))
         self._parameters.append(NumberParameter("num_dense_layers", min_value=1, max_value=maxDenseLayers, value=1))
         self._parameters.append(NumberParameter("maxpool_size", value=maxPoolSize, min_value=2, max_value=2, fixed=True))
