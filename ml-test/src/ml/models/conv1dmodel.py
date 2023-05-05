@@ -31,13 +31,14 @@ from sklearn.metrics import confusion_matrix
 def MainConv1DModel(
         output_path,
         conv_layer_range, 
-        dense_layer_range, 
+        dense_layer_range,
         x_train, 
         y_train, 
         x_test, 
         y_test,
         layer_train,
-        labels):
+        labels,
+        num_epochs=5):
     
     print(conv_layer_range)
     print(dense_layer_range)
@@ -59,15 +60,15 @@ def MainConv1DModel(
             
             # ? Create validation set so train:val:test = 0.55:0.2:0.25 ?
             # Option 1 with function from data.datasethandler
-            x_val, y_val, x_train, y_train, layer_val, layer_train = dataHandler.splitInputAndOutputLists(x_train, y_train, layer_train, 0.2666)
-            ## Option 2 in this notebook
-            #val_size = int(0.2666 * len(x_train))
-            #x_val = x_train[0:val_size]
-            #y_val = y_train[0:val_size]
-            #layer_val = layer_train[0:val_size]
-            #x_train = x_train[val_size:]
-            #y_train = y[val_size:]
-            #layer_train = layer_train[val_size:]
+            #x_val, y_val, x_train, y_train, layer_val, layer_train = data.dataHandler.splitInputAndOutputLists(x_train, y_train, layer_train, 0.2666)
+            # Option 2 in this notebook
+            val_size = int(0.2666 * len(x_train))
+            x_val = x_train[0:val_size]
+            y_val = y_train[0:val_size]
+            layer_val = layer_train[0:val_size]
+            x_train = x_train[val_size:]
+            y_train = y_train[val_size:]
+            layer_train = layer_train[val_size:]
             
             print("x_val.shape: ", x_val.shape)
             print("y_val.shape: ", y_val.shape)
@@ -83,9 +84,12 @@ def MainConv1DModel(
             start_time = time.time()
             
             # Train model
-            Conv1DModel.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=10, batch_size=8)
+            history = Conv1DModel.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=num_epochs, batch_size=8)
             # Save training time
             train_duration = time.time()-start_time
+            
+            # Print architecture
+            Conv1DModel.summary()
         
             # Model prediction
             y_pred = Conv1DModel.predict(x_test)
@@ -94,10 +98,15 @@ def MainConv1DModel(
             print(y_pred)
             
             # Evaluate model
-            evaluateConv1DModel(Conv1DModel, x_test, y_test, y_pred, labels)
+            acc, cm_df = evaluateConv1DModel(Conv1DModel, x_test, y_test, y_pred, labels)
                
             # Save model
-            storeConv1DModel(individual_output_path, Conv1DModel)
+            storeConv1DModel(individual_output_path, 
+                             Conv1DModel, 
+                             model_name, 
+                             acc,
+                             cm_df,
+                             train_duration)
     
     
     return
@@ -108,24 +117,27 @@ def MainConv1DModel(
 # @param model              Keras model
 # @param model_name         String with model name
 # @param accuracy           Float of model accuracy
+# @param conf_matrix        Confusion matrix as DataFrame
 # @param training_time      Float of training duration
 # @return                   'model.json', 'weights'.json', 
 #                           and 'performance.csv' in directory 'model_name'
-def storeConv1DModel(path, model, model_name, accuracy, training_time):
+def storeConv1DModel(path, model, model_name, accuracy, cm_df, training_time):
     # Try to create the directory
     try:
         os.mkdir(path)
     except:
         pass
-    return
     
-    # Write model to json file
-    model_json = model.to_json() 
-    with open(path["model"], "w+") as jsonFile:
-        jsonFile.write(model_json)
+    # # Write model to json file
+    # model_json = model.to_json() 
+    # with open(os.path.join(path, 'model'), "w") as jsonFile:
+    #     jsonFile.write(model_json)
         
-    # Write weights to a json file
-    model.save_weights(path["weights"])
+    # # Write weights to a json file
+    # model.save_weights(os.path.join(path, 'weights'))
+    
+    # Save the model
+    model.save(os.path.join(path, 'model'))
     
     # Create dataframe with accuracy and training time
     df = pd.DataFrame(columns=['Parameter', 'Value'])
@@ -134,7 +146,14 @@ def storeConv1DModel(path, model, model_name, accuracy, training_time):
     df = df.append({'Parameter': 'training_time', 'Value': training_time}, ignore_index=True)
     
     # Write performance dataframe to csv
-    df.to_csv(path["performance"], index=False)
+    df.to_csv(os.path.join(path, 'performance.csv'), index=False)
+    
+    # Write confustion matrix to png 
+    sn.heatmap(cm_df, annot=True, annot_kws={"size": 32})
+    plt.title("Confusion matrix")
+    plt.ylabel("True label")
+    plt.xlabel("Predicted label")
+    plt.savefig(os.path.join(path, 'confusion_matrix'))
 
     return
 
@@ -142,22 +161,23 @@ def storeConv1DModel(path, model, model_name, accuracy, training_time):
 ## Plot and save confusion matrix for 1D model
 # @param
 # @return
-def plotConfusionMatrix1D(matrix, labels, path):
-    #Create dataframe
+def plotConfusionMatrix1D(matrix, labels):
+    # Create dataframe
     dataframe = pd.DataFrame(matrix, index=labels, columns=labels)
     print(dataframe)
 
-    #Add heatmap
+    # Add heatmap
     sn.heatmap(dataframe, annot=True, annot_kws={"size": 32})
         
-    #Show plot
+    # Show plot
     plt.title("Confusion matrix")
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
-    plt.savefig(path)
     plt.show()
     plt.clf()
     
+    return dataframe
+
 
 ## Evaluate model
 # @param model              Keras model
@@ -180,9 +200,9 @@ def evaluateConv1DModel(model, xTest, yTest, yPred, labels):
     print(confusionMatrix)
     
     # Plot the confusion matrix
-    plotConfusionMatrix1D(confusionMatrix, labels)
+    cm_df = plotConfusionMatrix1D(confusionMatrix, labels)
     
-    return
+    return accuracy, cm_df
 
     
 ## Build the actual model
@@ -216,9 +236,9 @@ def buildConv1DModel(convLayer, denseLayer, xTrain):
             data_format='channels_last',
             padding='same')
         
-        #Add the standard layers
+        #Add the standard layers after convolutional layer
         model.add(convLayer)
-        model.add(kl.MaxPooling1D(2))  # could make this HyperParameter for HyperModel, but is always 2
+        model.add(kl.MaxPooling1D(pool_size=2))  # could make this HyperParameter for HyperModel, but is always 2
         model.add(kl.Dropout(0.5))
         model.add(kl.BatchNormalization())
     
@@ -235,25 +255,125 @@ def buildConv1DModel(convLayer, denseLayer, xTrain):
 
 
     #Add output layer
-    model.add(kl.Dense(1, activation='sigmoid'))
+    model.add(kl.Dense(units=1, activation='sigmoid'))
     
     #Compile model
-    # Specify range of learning rate with exponential decay
-    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate=0.1,
-            decay_steps=10000,
-            decay_rate=0.96,
-            staircase=True)
-    # Optimize with Stochastic Gradient Descent 
-    model.compile(
-        optimizer=SGD(learning_rate=lr_schedule), 
-        loss='binary_crossentropy', 
-        metrics=['accuracy'])    
+    # # Specify range of learning rate with exponential decay
+    # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    #         initial_learning_rate=0.1,
+    #         decay_steps=10000,
+    #         decay_rate=0.96,
+    #         staircase=True)
+    # # Optimize with Stochastic Gradient Descent 
+    # model.compile(
+    #     optimizer=SGD(learning_rate=lr_schedule), 
+    #     loss='binary_crossentropy', 
+    #     metrics=['accuracy'])    
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     
     # Print architecture
     model.summary()
     
     return model
     
+def buildSimpleConv1DModel(convLayer, denseLayer, xTrain): 
     
+    keras.backend.clear_session()
+    
+    # Define input shape
+    print(np.shape(xTrain)[1:])
+    
+    # THIS WORKS
+    # # Define model
+    # model = Sequential([
+    #     kl.Conv1D(filters=32, kernel_size=3, activation='relu', input_shape=input_shape),
+    #     kl.MaxPooling1D(pool_size=2),
+    #     kl.Flatten(),
+    #     kl.Dense(units=1, activation='sigmoid')
+    #     ])
+    
+    # THIS WORKS
+    model = Sequential()
+
+    # Add input layer
+    model.add(kl.Input(shape=np.shape(xTrain)[1:]))
+    # Add conv layers
+    convLayer = kl.Conv1D(filters=32, kernel_size=3, activation='relu', data_format='channels_last', padding='same')
+    model.add(convLayer)
+    model.add(kl.MaxPooling1D(pool_size=2))
+    model.add(kl.Dropout(0.5)) 
+    model.add(kl.BatchNormalization()) 
+    model.add(kl.Flatten())
+    
+    # Add dense layer  
+    numUnits = 250  # could make this HyperParameter for HyperModel
+    activationFunction = 'relu' # could make this HyperParameter for HyperModel
+    model.add(kl.Dense(units=numUnits, activation=activationFunction, kernel_initializer='he_uniform')) 
+    model.add(kl.Dropout(0.5))
+    
+    # Add dense output layers
+    model.add(kl.Dense(units=1, activation='sigmoid'))
+
+    # Compile model
+    # THIS WORKS
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])  
+
+    # Print model summary
+    model.summary()
+    
+    return model
+
+# # Fit model using validation data
+# history = model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=10, batch_size=8)
+
+# # Make prediction on test data
+# y_pred = model.predict(x_test)
+
+# # Print predicted values
+# print(y_pred)
+    
+#     #Clear the session to use less RAM
+#     keras.backend.clear_session()
+    
+#     model = Sequential()
+    
+#     convLayer = kl.Conv1D(
+#         filters=32, # could make this HyperParameter for HyperModel
+#         kernel_size=3, # could make this HyperParameter for HyperModel
+#         activation='relu',  # could make this HyperParameter for HyperModel
+#         data_format='channels_last',
+#         padding='same')
+    
+#     #Add the standard layers
+#     model.add(convLayer)
+#     model.add(kl.MaxPooling1D(2))  # could make this HyperParameter for HyperModel, but is always 2
+#     model.add(kl.Dropout(0.5))
+#     model.add(kl.BatchNormalization())
+    
+#     #Flatten the convolution data
+#     model.add(kl.Flatten())
+    
+#     # Add dense layer
+#     numUnits = 250  # could make this HyperParameter for HyperModel
+#     activationFunction = 'relu' # could make this HyperParameter for HyperModel
+
+#     model.add(kl.Dense(units=numUnits, activation=activationFunction, kernel_initializer='he_uniform'))
+#     model.add(kl.Dropout(0.5))
+    
+#     #Add output layer
+#     model.add(kl.Dense(1, activation='sigmoid'))
+    
+#     # Compile
+#     lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+#             initial_learning_rate=0.1,
+#             decay_steps=10000,
+#             decay_rate=0.96,
+#             staircase=True)
+#     # Optimize with Stochastic Gradient Descent 
+#     model.compile(
+#         optimizer=SGD(learning_rate=lr_schedule), 
+#         loss='binary_crossentropy', 
+#         metrics=['accuracy'])    
+    
+    return model
 

@@ -195,11 +195,11 @@ def main():
     print(type(xTest))
     
     # Training Simple CNN model
-    
+    epoch_count = 5
     # Define convolutional layer range
-    convRange = range(3, 8)
+    convRange = range(0, 1)  # (3, 8)
     # Define dense layer range
-    denseRange = range(5, 0, -1)
+    denseRange = range(1, 0, -1)  # (5, 0, -1)
     # Build and train all models in specified ranges
     MainConv1DModel(
         modelsPath,
@@ -210,7 +210,8 @@ def main():
         xTest, 
         yTest, 
         layerTrain,
-        labels)
+        labels,
+        epoch_count)
 
 
 
