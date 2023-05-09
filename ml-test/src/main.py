@@ -5,10 +5,10 @@ from ml.abstractmodels import *
 from libhelpers import *
 import os
 
-experimentName = "Test8_n2"
+experimentName = "total_8k"
 
 #Paths
-datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/Test8_n2"
+datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/total_8k"
 modelsPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/ml-test/src/models/" + experimentName
 plotOutputPath = modelsPath + "/plots/"   # For more insights into what predictions were wrong
 optimizedOutputPath = modelsPath + "/optimized_output/" 
@@ -18,7 +18,7 @@ waveOutputPath = modelsPath + "/samples/"
 #Variables
 verbose = True
 seed = 1
-nSize = 2 # number of tracks from the each background noise, 
+nSize = 500 # number of tracks from the each background noise, 
 # to creat a dataset 20 is OK, bu 100 (or even 200) is for better predictions
 # If 20, it would create 20 tracks with gunshot and 20 tracks without gunshot 
 # for each background noise. (np^2)
@@ -81,8 +81,8 @@ def loadDataset():
             fixed_duration=10,
             timeshift_bias=0,
             timeshift_max=3.2,
-            amplitude_scale=3,  # signal amplitude 
-            amplitude_deviation=2.5  # this creates range of scale +- deviation
+            amplitude_scale=5,  # signal amplitude 
+            amplitude_deviation=0.5  # this creates range of scale +- deviation
         )
         
         # Define the options for the noise layers
@@ -195,7 +195,7 @@ def main():
     print(type(xTest))
     
     # Training Simple CNN model
-    epoch_count = 5
+    epoch_count = 20
     # Define convolutional layer range
     convRange = range(3, 8)  # (3, 8)
     # Define dense layer range
