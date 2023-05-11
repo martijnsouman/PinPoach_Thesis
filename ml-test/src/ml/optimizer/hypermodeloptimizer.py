@@ -6,7 +6,7 @@ from ..abstractmodels import *
 import tensorflow as tf
 import kerastuner as kt
 from kerastuner import HyperParameters
-from keras_tuner.tuners import BayesianOptimization
+from kerastuner.tuners import BayesianOptimization
 
 import os
 
@@ -152,18 +152,19 @@ class HyperModelOptimizer:
     # @param trials                 The amount of trials to run
     # @param use_custom_tuner       Should the model always be optimized with the custom tuner
     def optimize(self, trials=25, use_custom_tuner=False):
-        print(self._verboseMode)
         self._verbosePrint("Optimizing hypermodel..")  # dit doet hij al niet dus self wordt hier niet doorgegeven of is niks
-        print(self)
-        
+       
         hp = HyperParameters()
+        
+        print(isinstance(self._modelWrapper, AbstractCompositeClassifierHyperModel))
+        print(use_custom_tuner)
         
         # If the model is a composite classifier
         if isinstance(self._modelWrapper, AbstractCompositeClassifierHyperModel) or use_custom_tuner:
             # Define the Oracle
             customOracle = BayesianOptimization( # kt.oracles.BayesianOptimization(
                 objective=kt.Objective("test_accuracy", direction="max"),
-                max_trials=trials,
+                max_trials=trials,  # wrs andere naam
                 hyperparameters=hp,
                 tune_new_entries=True,
                 seed=self._seed

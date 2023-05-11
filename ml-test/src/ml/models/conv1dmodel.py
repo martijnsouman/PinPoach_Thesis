@@ -60,6 +60,18 @@ def MainConv1DModel(
             y_train = y_train[val_size:]
             layer_train = layer_train[val_size:]
             
+            print(x_val.shape)
+            print(y_val.shape)
+            counts = np.bincount(y_val)
+            print("Validation number of 0: ", counts[0], "number of 1: ", counts[1])
+            counts = np.bincount(y_train)
+            print("Train number of 0: ", counts[0], "number of 1: ", counts[1])
+            
+            print(y_val[0])
+            print(layer_val[0])
+            print(y_val[1])
+            print(layer_val[1])
+
             # Build model
             Conv1DModel = buildConv1DModel(
                 num_conv_layers, 
@@ -72,6 +84,9 @@ def MainConv1DModel(
             history = Conv1DModel.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=num_epochs, batch_size=8)
             # Save training time
             train_duration = time.time()-start_train_time
+            
+            # Plot learning curve
+            plot_learning_curve(history)
             
             start_pred_time = time.time()
             
@@ -102,6 +117,32 @@ def MainConv1DModel(
     
     
     return
+
+
+
+
+## Plot learning curve to investigate training
+# @param                     Training history
+# @return                    Two learning curve plots of accuracy and loss
+def plot_learning_curve(history):
+    # Plot training & validation accuracy values
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.show()
+
+    # Plot training & validation loss values
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.show()
+
 
 
 ## Save the model paramters and details in files
@@ -163,6 +204,8 @@ def storeConv1DModel(path,
     return
 
 
+
+
 ## Plot and save confusion matrix for 1D model
 # @param
 # @return
@@ -181,6 +224,8 @@ def plotConfusionMatrix1D(matrix, labels):
     plt.clf()
     
     return dataframe
+
+
 
 
 ## Evaluate model
@@ -202,6 +247,8 @@ def evaluateConv1DModel(model, xTest, yTest, yPred, labels):
     cm_df = plotConfusionMatrix1D(confusionMatrix, labels)
     
     return accuracy, precision, recall, f1_sc, cm_df
+
+
 
     
 ## Build the actual model
@@ -277,6 +324,9 @@ def buildConv1DModel(convLayer, denseLayer, xTrain):
     model.summary()
     
     return model
+
+
+
     
 def buildSimpleConv1DModel(convLayer, denseLayer, xTrain): 
     
