@@ -2,13 +2,14 @@ from data import *
 from ml.optimizer import *
 from ml.models import *
 from ml.abstractmodels import * 
+from ml.compression import *
 from libhelpers import *
 import os
 
-experimentName = "final5_n100"
+experimentName = "total_8k"
 
 #Paths
-datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final5_n100"
+datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/" + experimentName
 modelsPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/ml-test/src/models/" + experimentName
 plotOutputPath = modelsPath + "/plots/"   # For more insights into what predictions were wrong
 optimizedOutputPath = modelsPath + "/optimized_output/" 
@@ -18,7 +19,7 @@ waveOutputPath = modelsPath + "/samples/"
 #Variables
 verbose = True
 seed = 1
-nSize = 100 # number of tracks from the each background noise, 
+nSize = 500 # number of tracks from the each background noise, 
 # to creat a dataset 20 is OK, but 100 (or even 200) is for better predictions
 # If 20, it would create 20 tracks with gunshot and 20 tracks without gunshot 
 # for each background noise. (n2^p)
@@ -195,11 +196,11 @@ def main():
     print(type(xTest))
     
     # # Training Simple CNN model
-    # epoch_count = 100  # 100
+    # epoch_count = 20  # 100
     # # Define convolutional layer range
     # convRange = range(1, 3)  # (3, 8) for MFCC, (1, 3) for 1D
     # # Define dense layer range
-    # denseRange = range(5, 0, -1)  # (5, 0, -1)
+    # denseRange = range(2, 0, -1)  # (5, 0, -1)
     # # Build and train all models in specified ranges
     # MainConv1DModel(
     #     modelsPath,
@@ -212,14 +213,24 @@ def main():
     #     layerTrain,
     #     labels,
     #     epoch_count)
+    
+    # Compress models
+    mainCompression(modelsPath,
+                    xTrain,
+                    yTrain,
+                    xTest,
+                    yTest,
+                    layerTrain,
+                    layerTest)     
+  
 
 
 
     #Setup the model factory
-    modelFactory = ModelFactory(
-            modelsPath, 
-            input_shape=np.shape(xTrain)[1:],   # input shape
-            verbose=verbose)
+    # modelFactory = ModelFactory(
+    #         modelsPath, 
+    #         input_shape=np.shape(xTrain)[1:],   # input shape
+    #         verbose=verbose)
 
     # This is a normal CNN model
 
@@ -231,6 +242,7 @@ def main():
     #    hypermodel.train(xTrain, yTrain, epoch_count=100, epochs_patience=25, batch_size=8)
     #    hypermodel.store()
     #    CNNModel.plotTrainingHistory(hypermodel, os.path.join(plotOutputPath,"training_history.png"))
+      
   
     # # Training a HyperCNN 1D model
     # hypermodel = modelFactory.getConv1DHyperModel(experimentName)
@@ -251,7 +263,7 @@ def main():
     #             fixed_seed=seed,
     #             verbose=True)  
     #     # Optimize the model
-    #     opt.optimize(trials=100, use_custom_tuner=True)
+    #     opt.optimize(trials=100, use_custom_tuner=False) #Normalle this is true
     #     opt.evolve(generations=5, population_size=20)  # This creates 100 models from which 1 will be the optimal (beste accuracy)
         
     #     # Get the results of the optimization steps 
@@ -259,33 +271,37 @@ def main():
     
     #     hypermodel.store()   
          
-    # Fancy model
+    # # Fancy model
 
-    #Training a HyperCNN model
-    hypermodel = modelFactory.getCNNHyperModel(experimentName)
-    if not hypermodel.load():
-        # Setup the optimizer
-        opt = HyperModelOptimizer(
-                hypermodel,
-                optimizedOutputPath,
-                xTrain, yTrain,
-                xTest, yTest,
-                max_model_size=2000000,
-                max_flatten_layer_size=2000,
-                epoch_count=100,
-                val_split=0.2,
-                epochs_patience=20,
-                batch_size=32,
-                fixed_seed=seed)
-
-        # Optimize the model
-        opt.optimize(trials=100, use_custom_tuner=True)
-        opt.evolve(generations=5, population_size=20)  # This creates 100 models from which 1 will be the optimal (beste accuracy)
+    # #Training a HyperCNN model
+    # hypermodel = modelFactory.getCNNHyperModel(experimentName)
+    # print(hypermodel)
+    # if not hypermodel.load():
+    #     # Setup the optimizer
+    #     opt = HyperModelOptimizer(
+    #             hypermodel,
+    #             optimizedOutputPath,
+    #             xTrain, yTrain,
+    #             xTest, yTest,
+    #             max_model_size=2000000,
+    #             max_flatten_layer_size=2000,
+    #             epoch_count=100,
+    #             val_split=0.2,
+    #             epochs_patience=20,
+    #             batch_size=32,
+    #             fixed_seed=seed)
+    #     print(opt)
+    #     print(opt._modelWrapper)
+    #     print(isinstance(opt._modelWrapper, AbstractCompositeClassifierHyperModel))
         
-        # Get the results of the optimization steps 
-        hypermodel, params = opt.getResults()
+    #     # Optimize the model
+    #     opt.optimize(trials=100, use_custom_tuner=True)
+    #     opt.evolve(generations=5, population_size=20)  # This creates 100 models from which 1 will be the optimal (beste accuracy)
+        
+    #     # Get the results of the optimization steps 
+    #     hypermodel, params = opt.getResults()
     
-        hypermodel.store()    
+    #     hypermodel.store()    
 
 
     # Plot the model and confusion matrix

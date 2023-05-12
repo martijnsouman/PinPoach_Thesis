@@ -15,6 +15,8 @@ from tensorflow import keras
 import keras.layers as kl
 from keras.models import Sequential
 from keras.optimizers import SGD
+from keras_tuner import HyperParameters
+from keras_tuner.tuners import RandomSearch
 
 from sklearn.metrics import confusion_matrix, f1_score
 
@@ -114,8 +116,7 @@ def MainConv1DModel(
                              cm_df,
                              train_duration,
                              pred_duration)
-    
-    
+
     return
 
 
@@ -266,19 +267,24 @@ def buildConv1DModel(convLayer, denseLayer, xTrain):
     model = Sequential()
     # A Sequential model is appropriate for a plain stack of layers where each 
     # layer has exactly one input tensor and one output tensor.
+    
+    # Define hyperparameters
+    hp = HyperParameters()
 
     # Add input layer
     model.add(kl.Input(shape=np.shape(xTrain)[1:]))
     
     #Add convolution layers
     for i in range(convLayer):
-        # possibly specify number of filerters
-        # possibly specify the activation function
+        # Define range of choise hyperparameters
+        filters = hp.Choice('filters', values=[8, 16, 32, 64])
+        kernel_size = hp.Choice('kernel_size', values=[2, 100])
+        activation_function = hp.Choice('activation_function', values=['relu', 'sigmoid', 'tanh'])
         
         convLayer = kl.Conv1D(
-            filters=32, # could make this HyperParameter for HyperModel
-            kernel_size=3, # could make this HyperParameter for HyperModel
-            activation='relu',  # could make this HyperParameter for HyperModel
+            filters=filters, # could make this HyperParameter for HyperModel
+            kernel_size=kernel_size, # could make this HyperParameter for HyperModel
+            activation=activation_function,  # could make this HyperParameter for HyperModel
             data_format='channels_last',
             padding='same')
         
@@ -293,10 +299,11 @@ def buildConv1DModel(convLayer, denseLayer, xTrain):
     
     #Add Dense layers
     for i in range(denseLayer):
-        numUnits = 250  # could make this HyperParameter for HyperModel
-        activationFunction = 'relu' # could make this HyperParameter for HyperModel
+        # Define range of choise hyperparameters
+        numUnits = hp.Choice('num_units', values=[50, 100, 150, 200, 250, 300, 350, 400])
+        dense_activation_function = hp.Choice('dense_activation_function', values=['relu', 'sigmoid', 'tanh'])
 
-        model.add(kl.Dense(units=numUnits, activation=activationFunction, kernel_initializer='he_uniform'))
+        model.add(kl.Dense(units=numUnits, activation=dense_activation_function, kernel_initializer='he_uniform'))
         model.add(kl.Dropout(0.5))
 
 
