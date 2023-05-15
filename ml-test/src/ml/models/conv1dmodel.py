@@ -62,17 +62,11 @@ def MainConv1DModel(
             y_train = y_train[val_size:]
             layer_train = layer_train[val_size:]
             
-            print(x_val.shape)
-            print(y_val.shape)
+    
             counts = np.bincount(y_val)
             print("Validation number of 0: ", counts[0], "number of 1: ", counts[1])
             counts = np.bincount(y_train)
             print("Train number of 0: ", counts[0], "number of 1: ", counts[1])
-            
-            print(y_val[0])
-            print(layer_val[0])
-            print(y_val[1])
-            print(layer_val[1])
 
             # Build model
             Conv1DModel = buildConv1DModel(
@@ -170,14 +164,6 @@ def storeConv1DModel(path,
         os.mkdir(path)
     except:
         pass
-    
-    # # Write model to json file
-    # model_json = model.to_json() 
-    # with open(os.path.join(path, 'model'), "w") as jsonFile:
-    #     jsonFile.write(model_json)
-        
-    # # Write weights to a json file
-    # model.save_weights(os.path.join(path, 'weights'))
     
     # Save the model
     model.save(os.path.join(path, 'model'))

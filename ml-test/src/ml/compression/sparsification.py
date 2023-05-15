@@ -11,17 +11,17 @@ from keras.constraints import Constraint
 # @param model          Keras model to prune
 # @percentage           Fraction of the weights to prune
 # @return               Sparse Keras model
-def l0_sparse_pruning(model, percentage):
+def l0_sparse_pruning(model_, percentage):
     
-    print(model.layers)
-    for layer in model.layers:
+    print(model_.layers)
+    for layer in model_.layers:
         if isinstance(layer, Layer):
-            if not layer is model.layers[-1]:
+            if not layer is model_.layers[-1]:
                 print("Sparsifying layer: ", layer)
                 for weight in layer.trainable_weights:
                     weight.assign(Sparse(percentage)(weight))
            
-    return model
+    return model_
 
 
 ## Sparse class, Constrains the weights to be sparse

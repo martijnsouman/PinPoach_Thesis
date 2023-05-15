@@ -215,13 +215,15 @@ def main():
     #     epoch_count)
     
     # Compress models
+    channelRanking = 'magnitude' # Either 'magnitude' or 'taylor' TAYLOR DOES NOT WORK
     mainCompression(modelsPath,
                     xTrain,
                     yTrain,
                     xTest,
                     yTest,
                     layerTrain,
-                    layerTest)     
+                    layerTest,
+                    channelRanking)     
   
 
 
