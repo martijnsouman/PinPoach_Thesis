@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from keras.models import Model
-from tensorflow.keras.layers import Layer
+from tensorflow.keras.layers import Layer, Dense
 from keras import backend as K
 from keras.utils import get_custom_objects
 from keras.constraints import Constraint
@@ -12,18 +12,21 @@ from keras.constraints import Constraint
 # @percentage           Fraction of the weights to prune
 # @return               Sparse Keras model
 def l0_sparse_pruning(model, percentage):
-
+    
+    print(model.layers)
     for layer in model.layers:
-        print("Sparsifying layer: ", layer)
         if isinstance(layer, Layer):
-            for weight in layer.trainable_weights:
-                weight.assign(Sparse(percentage)(weight))
+            if not layer is model.layers[-1]:
+                print("Sparsifying layer: ", layer)
+                for weight in layer.trainable_weights:
+                    weight.assign(Sparse(percentage)(weight))
+           
     return model
 
 
 ## Sparse class, Constrains the weights to be sparse
 # @param constraint                   
-# @return               Weight matrix w pruned 
+# @return w              Weight matrix w pruned 
 class Sparse(Constraint):
 
     def __init__(self, percentage):

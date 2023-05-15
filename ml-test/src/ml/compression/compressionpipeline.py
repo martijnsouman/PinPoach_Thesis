@@ -3,7 +3,7 @@ from tensorflow import keras
 import numpy as np
 
 from ml.compression.sparsification import *
-
+from ml.compression.pruning import *
 
 def mainCompression(models_path,
                     x_train,
@@ -15,15 +15,10 @@ def mainCompression(models_path,
     
     # Load all models
     for rootPath, dirNames, files in os.walk(models_path):
-        print(rootPath)
-        print(dirNames)
-        print(files)
         for modelName in dirNames:
-            print(modelName)
-            print(os.path.join(rootPath, modelName, 'model'))
+            print("Compressing: ", modelName)
             model = keras.models.load_model(os.path.join(rootPath, modelName, 'model'))
-            print(model)
-            
+
             model_performance(model, x_test, y_test)
             
             # Sparsify
@@ -35,6 +30,7 @@ def mainCompression(models_path,
             # Prune
             # - Magnitude based ranking
             #-  Taylor criteria based ranking
+            channel_pruning(sparse_model)
             
             
             # Quantization
@@ -49,10 +45,9 @@ def model_performance(model, x_test, y_test):
     # Prediction
     y_pred = model.predict(x_test)
     y_pred = np.round(y_pred)
-    print("Prediction: ", y_pred)
     
     # Accruacy
     loss, accuracy, precision, recall = model.evaluate(x_test, y_test, batch_size=8)
-    print(accuracy)
+    print("Accuracy: ", accuracy)
 
 
