@@ -62,7 +62,9 @@ total_layer = []
 
 # Split the total dataset in data and layers again
 total_data = np.array([sample[0] for sample in total_dataset])
+print(total_data[:3])
 total_layer = [sample[1] for sample in total_dataset]
+print(total_layer[:3])
 
 # Save the data and layers tot total directory
 np.savez_compressed(os.path.join(SNRtotal_path, "data.npz"), data=total_data)

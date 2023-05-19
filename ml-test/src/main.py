@@ -6,7 +6,7 @@ from ml.compression import *
 from libhelpers import *
 import os
 
-experimentName = "total_8k"
+experimentName = "final5_n100"
 
 #Paths
 datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/" + experimentName
@@ -19,7 +19,7 @@ waveOutputPath = modelsPath + "/samples/"
 #Variables
 verbose = True
 seed = 1
-nSize = 500 # number of tracks from the each background noise, 
+nSize = 100 # number of tracks from the each background noise, 
 # to creat a dataset 20 is OK, but 100 (or even 200) is for better predictions
 # If 20, it would create 20 tracks with gunshot and 20 tracks without gunshot 
 # for each background noise. (n2^p)
@@ -195,24 +195,27 @@ def main():
     print("yTrain.shape: ", yTrain.shape)
     print(type(xTest))
     
-    # # Training Simple CNN model
-    # epoch_count = 20  # 100
-    # # Define convolutional layer range
-    # convRange = range(1, 3)  # (3, 8) for MFCC, (1, 3) for 1D
-    # # Define dense layer range
-    # denseRange = range(2, 0, -1)  # (5, 0, -1)
-    # # Build and train all models in specified ranges
-    # MainConv1DModel(
-    #     modelsPath,
-    #     convRange, 
-    #     denseRange, 
-    #     xTrain, 
-    #     yTrain, 
-    #     xTest, 
-    #     yTest, 
-    #     layerTrain,
-    #     labels,
-    #     epoch_count)
+    # Training Simple CNN model
+    epoch_count = 10  # 100
+    # Define convolutional layer range
+    convRange = [1]  # range(3, 8) for MFCC, (1, 3) for 1D
+    # Define dense layer range
+    denseRange = [2,1]  # range(5, 0, -1)
+    # Usage of Keras Hypermodel
+    hypModel = True
+    # Build and train all models in specified ranges
+    MainConv1DModel(
+        modelsPath,
+        convRange, 
+        denseRange, 
+        xTrain, 
+        yTrain, 
+        xTest, 
+        yTest, 
+        layerTrain,
+        labels,
+        epoch_count,
+        hypModel)
     
     # Compress models
     channelRanking = 'magnitude' # Either 'magnitude' or 'taylor' TAYLOR DOES NOT WORK
@@ -228,7 +231,7 @@ def main():
 
 
 
-    #Setup the model factory
+    # Setup the model factory
     # modelFactory = ModelFactory(
     #         modelsPath, 
     #         input_shape=np.shape(xTrain)[1:],   # input shape
@@ -265,7 +268,7 @@ def main():
     #             fixed_seed=seed,
     #             verbose=True)  
     #     # Optimize the model
-    #     opt.optimize(trials=100, use_custom_tuner=False) #Normalle this is true
+    #     opt.optimize(trials=100, use_custom_tuner=False) #Normally this is true, but according to Deniz False is the same
     #     opt.evolve(generations=5, population_size=20)  # This creates 100 models from which 1 will be the optimal (beste accuracy)
         
     #     # Get the results of the optimization steps 
