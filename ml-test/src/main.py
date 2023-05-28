@@ -6,7 +6,7 @@ from ml.compression import *
 from libhelpers import *
 import os
 
-experimentName = "final5_n100"
+experimentName = "final5_n20"
 
 #Paths
 datasetOutputPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/" + experimentName
@@ -19,7 +19,7 @@ waveOutputPath = modelsPath + "/samples/"
 #Variables
 verbose = True
 seed = 1
-nSize = 100 # number of tracks from the each background noise, 
+nSize = 20 # number of tracks from the each background noise, 
 # to creat a dataset 20 is OK, but 100 (or even 200) is for better predictions
 # If 20, it would create 20 tracks with gunshot and 20 tracks without gunshot 
 # for each background noise. (n2^p)
@@ -170,8 +170,8 @@ def main():
     # Create directories
     createDirectory(datasetOutputPath)
     createDirectory(modelsPath)
-    createDirectory(plotOutputPath)
-    createDirectory(optimizedOutputPath)
+    #createDirectory(plotOutputPath)  # Uncomment for Deniz's model
+    #createDirectory(optimizedOutputPath)   # Uncomment for Deniz's model
     # createDirectory(waveOutputPath)
     
     # Load the dataset
@@ -195,38 +195,39 @@ def main():
     print("yTrain.shape: ", yTrain.shape)
     print(type(xTest))
     
-    # Training Simple CNN model
-    epoch_count = 10  # 100
-    # Define convolutional layer range
-    convRange = [1]  # range(3, 8) for MFCC, (1, 3) for 1D
-    # Define dense layer range
-    denseRange = [2,1]  # range(5, 0, -1)
-    # Usage of Keras Hypermodel
-    hypModel = True
-    # Build and train all models in specified ranges
-    MainConv1DModel(
-        modelsPath,
-        convRange, 
-        denseRange, 
-        xTrain, 
-        yTrain, 
-        xTest, 
-        yTest, 
-        layerTrain,
-        labels,
-        epoch_count,
-        hypModel)
+    # # Training Simple CNN model
+    # epoch_count = 10  # 100
+    # # Define convolutional layer range
+    # convRange = [1]  # range(3, 8) for MFCC, (1, 3) for 1D
+    # # Define dense layer range
+    # denseRange = [1]  # range(5, 0, -1)
+    # # Usage of Keras Hypermodel
+    # hypModel = True
+    # # Build and train all models in specified ranges
+    # MainConv1DModel(
+    #     modelsPath,
+    #     convRange, 
+    #     denseRange, 
+    #     xTrain, 
+    #     yTrain, 
+    #     xTest, 
+    #     yTest, 
+    #     layerTrain,
+    #     labels,
+    #     epoch_count,
+    #     hypModel)
     
-    # Compress models
-    channelRanking = 'magnitude' # Either 'magnitude' or 'taylor' TAYLOR DOES NOT WORK
-    mainCompression(modelsPath,
-                    xTrain,
-                    yTrain,
-                    xTest,
-                    yTest,
-                    layerTrain,
-                    layerTest,
-                    channelRanking)     
+    # # Compress models
+    # channelRanking = 'magnitude' # Either 'magnitude' or 'taylor' TAYLOR DOES NOT WORK
+    # mainCompression(modelsPath,
+    #                 xTrain,
+    #                 yTrain,
+    #                 xTest,
+    #                 yTest,
+    #                 layerTrain,
+    #                 layerTest,
+    #                 labels,
+    #                 channelRanking)     
   
 
 
@@ -310,10 +311,10 @@ def main():
 
 
     # Plot the model and confusion matrix
-    evaluateModel(hypermodel, xTest, yTest, layerTest, experimentName)
+    #evaluateModel(hypermodel, xTest, yTest, layerTest, experimentName)
         
     # Find correlations between layers and accuracy
-    findCorrelations(hypermodel, xTest, yTest, layerTest)
+    #findCorrelations(hypermodel, xTest, yTest, layerTest)
 
 
 if __name__ == '__main__':

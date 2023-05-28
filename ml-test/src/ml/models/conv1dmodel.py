@@ -13,6 +13,7 @@ import pandas as pd
 from tensorflow import keras
 
 import keras.layers as kl
+from keras.callbacks import ModelCheckpoint
 from keras.models import Sequential
 from keras.optimizers import SGD
 from keras_tuner import HyperParameters
@@ -71,9 +72,6 @@ def MainConv1DModel(
                 history = Conv1DModel.fit(x=x_train, y=y_train, validation_split=0.2666, epochs=num_epochs, batch_size=8)
                 # Save training time
                 train_duration = time.time()-start_train_time
-               
-                # Plot learning curve
-                plot_learning_curve(history)
             else:
                 # For hypermodel
                 model_name = 'HyperConv{}_Dense{}_1DModel'.format(
@@ -95,27 +93,34 @@ def MainConv1DModel(
                     project_name=model_name)
                 
                 # Search best model
+                start_train_time = time.time()
+                # Only save final model
+                checkpoint_path = os.path.join(individual_output_path, 'best_model.h5')
+                checkpoint_callback = ModelCheckpoint(checkpoint_path, monitor='val_accuracy', save_best_only=True)
                 tuner.search(x_train, 
                              y_train, 
                              validation_split=0.2666, 
-                             epochs=10, 
-                             batch_size=8)
+                             epochs=num_epochs, 
+                             batch_size=8,
+                             callbacks=[checkpoint_callback])
+                # Save training time
+                train_duration = time.time()-start_train_time
                 
                 # Get best model
                 Conv1DModel = tuner.get_best_models(num_models=1)[0]
-                Conv1DModel_hp = tuner.get_best_hyperparameters(num_trials=1)[0]
-                print(Conv1DModel_hp)
-            
+                Conv1DModel_hp = tuner.get_best_hyperparameters(num_trials=1)[0] 
+                print("Final Hyperparameters:")
+                print(Conv1DModel_hp.values)
             
             # Model prediction
             start_pred_time = time.time()
             y_pred = Conv1DModel.predict(x_test)
+            y_pred = np.round(y_pred)
             # Save prediction time
             pred_duration = time.time()-start_pred_time
-            y_pred = np.round(y_pred)
             
             # Evaluate model
-            acc, pres, rec, f1_s, cm_df = evaluateConv1DModel(Conv1DModel, 
+            acc, prec, rec, f1_s, cm_df = evaluateConv1DModel(Conv1DModel, 
                                                               x_test, 
                                                               y_test, 
                                                               y_pred, 
@@ -126,22 +131,36 @@ def MainConv1DModel(
                              Conv1DModel, 
                              model_name, 
                              acc,
-                             pres,
+                             prec,
                              rec,
                              f1_s,
                              cm_df,
                              train_duration,
                              pred_duration)
+            
+            # Save the hyperparameters to a file
+            store_hp(Conv1DModel_hp, individual_output_path)
 
     return
 
 
-
+## Try to store the hyperparameters
+# @param
+# @return
+def store_hp(hyperparameters, directory):
+    try:
+        # Save the hyperparameters to a file
+        hyperparameters_file = os.path.join(directory, "hyperparameters.txt")
+        with open(hyperparameters_file, "w") as f:
+            for param, value in hyperparameters.items():
+                f.write(f"{param}: {value}\n")
+    except Exception as e:
+        print(f"Error occurred while storing hyperparameters: {str(e)}")
 
 ## Plot learning curve to investigate training
 # @param                     Training history
 # @return                    Two learning curve plots of accuracy and loss
-def plot_learning_curve(history):
+def plot_learning_curve(history, path):
     # Plot training & validation accuracy values
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
@@ -149,7 +168,7 @@ def plot_learning_curve(history):
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Validation'], loc='upper left')
-    plt.show()
+    plt.savefig(os.path.join(path, 'learning_curve_accuracy'))
 
     # Plot training & validation loss values
     plt.plot(history.history['loss'])
@@ -158,8 +177,7 @@ def plot_learning_curve(history):
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Validation'], loc='upper left')
-    plt.show()
-
+    plt.savefig(os.path.join(path, 'learning_curve_loss'))
 
 
 ## Save the model paramters and details in files
@@ -176,7 +194,7 @@ def storeConv1DModel(path,
                      model_name, 
                      accuracy, 
                      recall, 
-                     presicion, 
+                     precision, 
                      f1_sc, 
                      cm_df, 
                      training_time,
@@ -195,7 +213,7 @@ def storeConv1DModel(path,
     df = df.append({'Parameter': 'model_name', 'Value': model_name}, ignore_index=True)
     df = df.append({'Parameter': 'accuracy', 'Value': accuracy}, ignore_index=True)
     df = df.append({'Parameter': 'recall', 'Value': recall}, ignore_index=True)
-    df = df.append({'Parameter': 'presicion', 'Value': presicion}, ignore_index=True)
+    df = df.append({'Parameter': 'precision', 'Value': precision}, ignore_index=True)
     df = df.append({'Parameter': 'f1_score', 'Value': f1_sc}, ignore_index=True)
     df = df.append({'Parameter': 'training_time', 'Value': training_time}, ignore_index=True)
     df = df.append({'Parameter': 'prediction_time', 'Value': prediction_time}, ignore_index=True)
@@ -340,7 +358,6 @@ def buildConv1DModel(convLayer, denseLayer, xTrain):
     
     return model
 
-
 ## Try to use a Hypermodel with tunable parameters
 # @param
 # @return   
@@ -410,6 +427,83 @@ def buildConv1DHyperModel(hp, convLayer, denseLayer, xTrain):
     
     return model
 
+
+# https://github.com/tensorflow/model-optimization/issues/362
+
+def buildConv2DHyperModel(hp, convLayer, denseLayer, xTrain):
+    
+    # Build the model
+    model = keras.Sequential()
+    
+    # Add input layer
+    model.add(kl.Input(shape=np.shape(xTrain)[1:]))
+    
+    # Add convolution layers
+    for i in range(convLayer):
+        # Define hyperparameters
+        filters = hp.Choice('filters_'+str(i), values=[8, 16, 32, 64])
+        kernel_size = hp.Choice('kernel_size_'+str(i), values=[2, 100])
+        activation_function = hp.Choice('activation_function_'+str(i), values=['relu', 'sigmoid', 'tanh'])
+        
+        # Add Reshape layer before Conv2D
+        model.add(kl.Reshape((np.shape(xTrain)[1], 1, 1)))
+        
+        # Define convolutional layer
+        convLayer2D = kl.Conv2D(
+            filters=filters,
+            kernel_size=(kernel_size, 1),
+            activation=activation_function,
+            padding='same')
+        
+        # Add convolutional layer
+        model.add(convLayer2D)
+        
+        # Add Reshape layer before MaxPooling2D
+        model.add(kl.Reshape((np.shape(xTrain)[1] // 2, filters, 1)))
+        
+        # Add layers
+        model.add(kl.MaxPooling2D(pool_size=(2, 1)))
+        model.add(kl.Dropout(0.5))
+        model.add(kl.BatchNormalization())
+    
+    # Flatten the convolution data
+    model.add(kl.Reshape((np.shape(xTrain)[1] // 2, filters, convLayer)))
+    model.add(kl.Reshape((np.shape(xTrain)[1] // 2, filters * convLayer)))
+    model.add(kl.Flatten())
+    
+    # Add dense layers
+    for i in range(denseLayer):
+        # Define hyperparameters
+        numUnits = hp.Choice('num_units_'+str(i), values=[50, 100, 150, 200, 250, 300, 350, 400])
+        dense_activation_function = hp.Choice('dense_activation_function_'+str(i), values=['relu', 'sigmoid', 'tanh'])
+        
+        # Add layers
+        model.add(kl.Dense(units=numUnits, activation=dense_activation_function, kernel_initializer='he_uniform'))
+        model.add(kl.Dropout(0.5))
+
+    # Add output layer
+    model.add(kl.Dense(units=1, activation='sigmoid'))
+    
+    # Define hyperparameters
+    optimizer = hp.Choice('optimizer', values=['adam', 'sgd', 'rmsprop'])
+    lr = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
+    if optimizer == 'adam':
+        optim = keras.optimizers.Adam(learning_rate=lr)
+    elif optimizer == 'sgd':
+        optim = keras.optimizers.SGD(learning_rate=lr)
+    else:
+        optim = keras.optimizers.RMSprop(learning_rate=lr)
+        
+    # Compile model
+    model.compile(optimizer=optim, loss='binary_crossentropy', 
+                  metrics=['accuracy', 
+                           tf.keras.metrics.Precision(),
+                           tf.keras.metrics.Recall()])
+    
+    # Print architecture
+    model.summary()
+    
+    return model
 
 
 

@@ -3,13 +3,13 @@ import numpy as np
 import json
 
 # Set paths to predefined datasets
-SNR1_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final1_n100"
-SNR2_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final2_n100"
-SNR3_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final3_n100"
-SNR4_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final4_n100"
-SNR5_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final5_n100"
+SNR1_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final1_n20"
+SNR2_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final2_n20"
+SNR3_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final3_n20"
+SNR4_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final4_n20"
+SNR5_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/final5_n20"
 # Set path to new total dataset
-SNRtotal_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/total_8k"
+SNRtotal_path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data/Dataset/total_2k"
 
 # Create list of all dataset variable names
 SNR_list = [SNR1_path, SNR2_path, SNR3_path, SNR4_path, SNR5_path]
