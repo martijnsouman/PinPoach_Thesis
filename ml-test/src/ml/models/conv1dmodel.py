@@ -430,80 +430,80 @@ def buildConv1DHyperModel(hp, convLayer, denseLayer, xTrain):
 
 # https://github.com/tensorflow/model-optimization/issues/362
 
-def buildConv2DHyperModel(hp, convLayer, denseLayer, xTrain):
+# def buildConv2DHyperModel(hp, convLayer, denseLayer, xTrain):
     
-    # Build the model
-    model = keras.Sequential()
+#     # Build the model
+#     model = keras.Sequential()
     
-    # Add input layer
-    model.add(kl.Input(shape=np.shape(xTrain)[1:]))
+#     # Add input layer
+#     model.add(kl.Input(shape=np.shape(xTrain)[1:]))
     
-    # Add convolution layers
-    for i in range(convLayer):
-        # Define hyperparameters
-        filters = hp.Choice('filters_'+str(i), values=[8, 16, 32, 64])
-        kernel_size = hp.Choice('kernel_size_'+str(i), values=[2, 100])
-        activation_function = hp.Choice('activation_function_'+str(i), values=['relu', 'sigmoid', 'tanh'])
+#     # Add convolution layers
+#     for i in range(convLayer):
+#         # Define hyperparameters
+#         filters = hp.Choice('filters_'+str(i), values=[8, 16, 32, 64])
+#         kernel_size = hp.Choice('kernel_size_'+str(i), values=[2, 100])
+#         activation_function = hp.Choice('activation_function_'+str(i), values=['relu', 'sigmoid', 'tanh'])
         
-        # Add Reshape layer before Conv2D
-        model.add(kl.Reshape((np.shape(xTrain)[1], 1, 1)))
+#         # Add Reshape layer before Conv2D
+#         model.add(kl.Reshape((np.shape(xTrain)[1], 1, 1)))
         
-        # Define convolutional layer
-        convLayer2D = kl.Conv2D(
-            filters=filters,
-            kernel_size=(kernel_size, 1),
-            activation=activation_function,
-            padding='same')
+#         # Define convolutional layer
+#         convLayer2D = kl.Conv2D(
+#             filters=filters,
+#             kernel_size=(kernel_size, 1),
+#             activation=activation_function,
+#             padding='same')
         
-        # Add convolutional layer
-        model.add(convLayer2D)
+#         # Add convolutional layer
+#         model.add(convLayer2D)
         
-        # Add Reshape layer before MaxPooling2D
-        model.add(kl.Reshape((np.shape(xTrain)[1] // 2, filters, 1)))
+#         # Add Reshape layer before MaxPooling2D
+#         model.add(kl.Reshape((np.shape(xTrain)[1] // 2, filters, 1)))
         
-        # Add layers
-        model.add(kl.MaxPooling2D(pool_size=(2, 1)))
-        model.add(kl.Dropout(0.5))
-        model.add(kl.BatchNormalization())
+#         # Add layers
+#         model.add(kl.MaxPooling2D(pool_size=(2, 1)))
+#         model.add(kl.Dropout(0.5))
+#         model.add(kl.BatchNormalization())
     
-    # Flatten the convolution data
-    model.add(kl.Reshape((np.shape(xTrain)[1] // 2, filters, convLayer)))
-    model.add(kl.Reshape((np.shape(xTrain)[1] // 2, filters * convLayer)))
-    model.add(kl.Flatten())
+#     # Flatten the convolution data
+#     model.add(kl.Reshape((np.shape(xTrain)[1] // 2, filters, convLayer)))
+#     model.add(kl.Reshape((np.shape(xTrain)[1] // 2, filters * convLayer)))
+#     model.add(kl.Flatten())
     
-    # Add dense layers
-    for i in range(denseLayer):
-        # Define hyperparameters
-        numUnits = hp.Choice('num_units_'+str(i), values=[50, 100, 150, 200, 250, 300, 350, 400])
-        dense_activation_function = hp.Choice('dense_activation_function_'+str(i), values=['relu', 'sigmoid', 'tanh'])
+#     # Add dense layers
+#     for i in range(denseLayer):
+#         # Define hyperparameters
+#         numUnits = hp.Choice('num_units_'+str(i), values=[50, 100, 150, 200, 250, 300, 350, 400])
+#         dense_activation_function = hp.Choice('dense_activation_function_'+str(i), values=['relu', 'sigmoid', 'tanh'])
         
-        # Add layers
-        model.add(kl.Dense(units=numUnits, activation=dense_activation_function, kernel_initializer='he_uniform'))
-        model.add(kl.Dropout(0.5))
+#         # Add layers
+#         model.add(kl.Dense(units=numUnits, activation=dense_activation_function, kernel_initializer='he_uniform'))
+#         model.add(kl.Dropout(0.5))
 
-    # Add output layer
-    model.add(kl.Dense(units=1, activation='sigmoid'))
+#     # Add output layer
+#     model.add(kl.Dense(units=1, activation='sigmoid'))
     
-    # Define hyperparameters
-    optimizer = hp.Choice('optimizer', values=['adam', 'sgd', 'rmsprop'])
-    lr = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
-    if optimizer == 'adam':
-        optim = keras.optimizers.Adam(learning_rate=lr)
-    elif optimizer == 'sgd':
-        optim = keras.optimizers.SGD(learning_rate=lr)
-    else:
-        optim = keras.optimizers.RMSprop(learning_rate=lr)
+#     # Define hyperparameters
+#     optimizer = hp.Choice('optimizer', values=['adam', 'sgd', 'rmsprop'])
+#     lr = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
+#     if optimizer == 'adam':
+#         optim = keras.optimizers.Adam(learning_rate=lr)
+#     elif optimizer == 'sgd':
+#         optim = keras.optimizers.SGD(learning_rate=lr)
+#     else:
+#         optim = keras.optimizers.RMSprop(learning_rate=lr)
         
-    # Compile model
-    model.compile(optimizer=optim, loss='binary_crossentropy', 
-                  metrics=['accuracy', 
-                           tf.keras.metrics.Precision(),
-                           tf.keras.metrics.Recall()])
+#     # Compile model
+#     model.compile(optimizer=optim, loss='binary_crossentropy', 
+#                   metrics=['accuracy', 
+#                            tf.keras.metrics.Precision(),
+#                            tf.keras.metrics.Recall()])
     
-    # Print architecture
-    model.summary()
+#     # Print architecture
+#     model.summary()
     
-    return model
+#     return model
 
 
 

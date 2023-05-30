@@ -1,25 +1,33 @@
-import tensorflow_model_optimization as tfmot
-import tensorflow as tf
+# import os
+# import tensorflow as tf
+# from tensorflow import keras
+
+# # https://www.tensorflow.org/lite/performance/post_training_quant
+
+# # Model path
+# path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/ml-test/src/models/final5_n100/HyperConv1_Dense1_1DModel" 
+
+# # Load the model
+# model = keras.models.load_model(os.path.join(path, 'model'))
+# print(model)
+
+# # Convert the Keras model to a TensorFlow Lite model
+# converter = tf.lite.TFLiteConverter.from_keras_model(model)
+# print(converter)
+
+# # Set the optimization flag for quantization
+# converter.optimizations = [tf.lite.Optimize.DEFAULT]
+
+# # Convert the model to TensorFlow Lite format
+# tflite_model = converter.convert()
+
+# # Load the quantized model into a new interpreter
+# interpreter = tf.lite.Interpreter(model_content=tflite_model)
+# interpreter.allocate_tensors()
 
 
-# https://www.tensorflow.org/lite/performance/post_training_quant
 
-def model_quantization(model):
-    # Convert the Keras model to a TensorFlow Lite model
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    print(converter)
 
-    # Set the optimization flag for quantization
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
-
-    # Convert the model to TensorFlow Lite format
-    tflite_model = converter.convert()
-
-    # Load the quantized model into a new interpreter
-    interpreter = tf.lite.Interpreter(model_content=tflite_model)
-    interpreter.allocate_tensors()
-
-    return interpreter
 
 # class CustomConv1DQuantizeConfig(tfmot.quantization.keras.QuantizeConfig):
 #     def get_weights_and_quantizers(self, layer):

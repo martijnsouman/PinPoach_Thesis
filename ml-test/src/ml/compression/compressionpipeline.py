@@ -65,23 +65,7 @@ def mainCompression(models_path,
             
             # Quantization
             quantized_model = model_quantization(pruned_model)
-            
-            # Prepare the input data
-            input_data = x_test.astype(np.float32)
-
-            # Get input and output details from the interpreter
-            input_details = quantized_model.get_input_details()
-            output_details = quantized_model.get_output_details()
-
-            # Set the input tensor value
-            quantized_model.set_tensor(input_details[0]['index'], input_data)
-
-            # Run inference
-            quantized_model.invoke()
-
-            # Get the output tensor value
-            output_data = quantized_model.get_tensor(output_details[0]['index'])
-            print(output_data)
+            # This does not work
             
             # Evaluate and store quantized model
             model_predict_store(quantized_model, 
