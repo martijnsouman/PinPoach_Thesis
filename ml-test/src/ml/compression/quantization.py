@@ -1,76 +1,39 @@
-# import os
-# import tensorflow as tf
-# from tensorflow import keras
+import os
+import pathlib
+import tensorflow as tf
+from tensorflow import keras
 
-# # https://www.tensorflow.org/lite/performance/post_training_quant
+from sparsification import *
+from pruning import *
 
-# # Model path
-# path = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/ml-test/src/models/final5_n100/HyperConv1_Dense1_1DModel" 
+# https://www.tensorflow.org/lite/performance/post_training_quant
 
-# # Load the model
-# model = keras.models.load_model(os.path.join(path, 'model'))
-# print(model)
+# Load model
+modelPath = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/ml-test/src/models/total_2k/HyperConv2_Dense1_1DModel"
+model = keras.models.load_model(os.path.join(modelPath, 'model'))
 
-# # Convert the Keras model to a TensorFlow Lite model
-# converter = tf.lite.TFLiteConverter.from_keras_model(model)
-# print(converter)
+# Sparsification
+sparse_model = l0_sparse_pruning(model, 0.5)
 
-# # Set the optimization flag for quantization
-# converter.optimizations = [tf.lite.Optimize.DEFAULT]
+# Pruning
+pruned_model = channel_pruning(sparse_model)
 
-# # Convert the model to TensorFlow Lite format
-# tflite_model = converter.convert()
+# Convert the Keras model to a TensorFlow Lite model
+converter = tf.lite.TFLiteConverter.from_keras_model(pruned_model)
+tflite_model = converter.convert()
 
-# # Load the quantized model into a new interpreter
-# interpreter = tf.lite.Interpreter(model_content=tflite_model)
+# Create directory to story model
+tflite_models_dir = pathlib.Path(os.path.join(modelPath, 'quantized_model'))
+tflite_models_dir.mkdir(exist_ok=True, parents=True)
+
+# Store the model
+tflite_model_file = tflite_models_dir/"tflite_model"
+tflite_model_file.write_bytes(tflite_model)
+
+# Load the model in an interpreter
+# interpreter = tf.lite.Interpreter(model_path=str(tflite_model_file))
 # interpreter.allocate_tensors()
 
 
 
 
-
-# class CustomConv1DQuantizeConfig(tfmot.quantization.keras.QuantizeConfig):
-#     def get_weights_and_quantizers(self, layer):
-#         return [(layer.kernel, 
-#                  tfmot.quantization.keras.quantizers.LastValueQuantizer(
-#                      num_bits=8, 
-#                      symmetric=True, 
-#                      narrow_range=False, 
-#                      per_axis=False))]
-
-#     def get_activations_and_quantizers(self, layer):
-#         return [(layer.activation, 
-#                  tfmot.quantization.keras.quantizers.MovingAverageQuantizer(
-#                      num_bits=8, 
-#                      symmetric=True, 
-#                      narrow_range=False, 
-#                      per_axis=False))]
-
-#     def set_quantize_weights(self, layer, quantize_weights):
-#         layer.kernel = quantize_weights[layer.kernel]
-
-#     def set_quantize_activations(self, layer, quantize_activations):
-#         layer.activation = quantize_activations[layer.activation]
-        
-#     def get_output_quantizers(self, layer):
-#         # Does not quantize output, since we return an empty list.
-#         return []
-    
-#     def get_config(self):
-#         return {}
-
-
-# def model_quantization(model):
-
-#     # Use custom function for Conv1D layers and normal quantization for others
-#     for layer in model.layers:
-#         if isinstance(layer, tf.keras.layers.Conv1D):
-#             quantize_config = CustomConv1DQuantizeConfig()
-#             tfmot.quantization.keras.quantize_annotate_layer(layer, quantize_config=quantize_config)
-#         else:
-#             tfmot.quantization.keras.quantize_annotate_layer(layer)
-    
-#     # Apply quantization
-#     quantized_model = tfmot.quantization.keras.quantize_apply(model)
-
-#     return quantized_model
