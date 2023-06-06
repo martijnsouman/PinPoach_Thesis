@@ -179,55 +179,56 @@ def main():
 
     # Get labeled data
     xData, yData, layerData = dataHandler.getBinaryLabeledData(["single_shots"])
-    #print("XData: ", xData)
-    print("xData.shape: ", xData.shape)  # 1D=True: (32, 20000, 1), 1D=False: (32, 200, 13, 1)
-    print("yData.shape: ", yData.shape)  # Alwasy (32,)
-    #print(yData.shape)  # [0 1 0 1 1 0 0 ...] 
-    #print("layerData: ", layerData)
+    # #print("XData: ", xData)
+    # print("xData.shape: ", xData.shape)  # 1D=True: (32, 20000, 1), 1D=False: (32, 200, 13, 1)
+    # print("yData.shape: ", yData.shape)  # Alwasy (32,)
+    # #print(yData.shape)  # [0 1 0 1 1 0 0 ...] 
+    # #print("layerData: ", layerData)
 
     # From here on the training starts
 
     # Split the dataset
     xTest, yTest, xTrain, yTrain, layerTest, layerTrain = dataHandler.splitInputAndOutputLists(xData, yData, layerData)
-    print("xTest.shape: ", xTest.shape)
-    print("yTest.shape: ", yTest.shape)
-    print("xTrain.shape: ", xTrain.shape)
-    print("yTrain.shape: ", yTrain.shape)
-    print(type(xTest))
+    # print("xTest.shape: ", xTest.shape)
+    # print("yTest.shape: ", yTest.shape)
+    # print("xTrain.shape: ", xTrain.shape)
+    # print("yTrain.shape: ", yTrain.shape)
+    # print(type(xTest))
     
     # Training Simple CNN model
-    epoch_count = 10  # 100
-    # Define convolutional layer range
-    convRange = [2, 3, 4, 5]  # range(3, 8) for MFCC, (1, 3) for 1D
-    # Define dense layer range
-    denseRange = [1, 3, 5]  # range(5, 0, -1)
-    # Usage of Keras Hypermodel
-    hypModel = True
-    # Build and train all models in specified ranges
-    MainConv1DModel(
-        modelsPath,
-        convRange, 
-        denseRange, 
-        xTrain, 
-        yTrain, 
-        xTest, 
-        yTest, 
-        layerTrain,
-        labels,
-        epoch_count,
-        hypModel)
+    epoch_count = 20  # 100
+    # # Define convolutional layer range
+    # convRange = [4, 5]  # range(3, 8) for MFCC, (1, 3) for 1D
+    # # Define dense layer range
+    # denseRange = [1, 3, 5]  # range(5, 0, -1)
+    # # Usage of Keras Hypermodel
+    # hypModel = True
+    # # Build and train all models in specified ranges
+    # MainConv1DModel(
+    #     modelsPath,
+    #     convRange, 
+    #     denseRange, 
+    #     xTrain, 
+    #     yTrain, 
+    #     xTest, 
+    #     yTest, 
+    #     layerTrain,
+    #     labels,
+    #     epoch_count,
+    #     hypModel)
     
-    # # Compress models
-    # channelRanking = 'magnitude' # Either 'magnitude' or 'taylor' TAYLOR DOES NOT WORK
-    # mainCompression(modelsPath,
-    #                 xTrain,
-    #                 yTrain,
-    #                 xTest,
-    #                 yTest,
-    #                 layerTrain,
-    #                 layerTest,
-    #                 labels,
-    #                 channelRanking)     
+    # Compress models
+    channelRanking = 'magnitude' # Either 'magnitude' or 'taylor' TAYLOR DOES NOT WORK
+    mainCompression(modelsPath,
+                    xTrain,
+                    yTrain,
+                    xTest,
+                    yTest,
+                    layerTrain,
+                    layerTest,
+                    labels,
+                    epoch_count,
+                    channelRanking)     
   
 
 

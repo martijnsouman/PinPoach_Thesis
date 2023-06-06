@@ -157,28 +157,6 @@ def store_hp(hyperparameters, directory):
     except Exception as e:
         print(f"Error occurred while storing hyperparameters: {str(e)}")
 
-## Plot learning curve to investigate training
-# @param                     Training history
-# @return                    Two learning curve plots of accuracy and loss
-def plot_learning_curve(history, path):
-    # Plot training & validation accuracy values
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
-    plt.title('Model accuracy')
-    plt.ylabel('Accuracy')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper left')
-    plt.savefig(os.path.join(path, 'learning_curve_accuracy'))
-
-    # Plot training & validation loss values
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.title('Model loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper left')
-    plt.savefig(os.path.join(path, 'learning_curve_loss'))
-
 
 ## Save the model paramters and details in files
 # @param path               Path to model

@@ -16,10 +16,8 @@ def mainCompression(models_path,
                     layer_train, 
                     layer_test, 
                     labels, 
+                    epoch_num,
                     channel_ranking = 'magnitude'):
-    print(x_test)
-    print(x_test.shape)
-    print(type(x_test))
     
     
     # Load all models
@@ -38,9 +36,26 @@ def mainCompression(models_path,
             modelPath = os.path.join(rootPath, modelName)
             model = keras.models.load_model(os.path.join(modelPath, 'model'))
             
+            # Make prediction
+            y_pred = model.predict(x_test)
+            y_pred = np.round(y_pred)
+            
+            # Evaluate model
+            accuracy, precision, recall, f1_sc, cm_df = evaluateConv1DModel(
+                model, 
+                x_test, 
+                y_test, 
+                y_pred, 
+                labels)
+            
+            print("Accuracy: ", accuracy)
+            print("Percision: ", precision)
+            print("Recall: ", recall)
+            print("F1-score: ", f1_sc)
+            
             # Sparsify
             # Perform pruning on the model's weights
-            sparse_model = l0_sparse_pruning(model, 0.5)
+            sparse_model = l0_sparse_pruning(model, 0.2)
             
             # Evaluate and store sparse model
             model_predict_store(sparse_model, 
@@ -63,18 +78,68 @@ def mainCompression(models_path,
                                 y_test, 
                                 labels)
             
-            # Quantization
-            quantized_model = model_quantization(pruned_model)
-            # This does not work
+            # Retrain 
+            # Retrieve the optimizer used in the initial model
+            optimizer = pruned_model.optimizer  
+            # Compile the pruned model 
+            pruned_model.compile(optimizer=optimizer, 
+                                 loss='binary_crossentropy', 
+                                 metrics=['accuracy', 
+                                          tf.keras.metrics.Precision(), 
+                                          tf.keras.metrics.Recall()])
+            # Retrain the pruned model
+            history = pruned_model.fit(x_train, y_train, 
+                                       batch_size=8,
+                                       epochs=epoch_num,
+                                       validation_split=0.2666)
             
-            # Evaluate and store quantized model
-            model_predict_store(quantized_model, 
-                                'quantized_model',
-                                modelPath,
-                                x_test, 
-                                y_test, 
-                                labels)
+            # Make prediction
+            y_pred = pruned_model.predict(x_test)
+            y_pred = np.round(y_pred)
+            
+            # Evaluate the retrained model on the test data
+            # Create new directory called retrained_model
+            # save the learning curve and other normal stats to this. 
+            plot_learning_curve(history, os.path.join(modelPath, 'pruned_model'))
+            test_loss, test_accuracy, test_precision, test_recall = pruned_model.evaluate(x_test, y_test)
+            print("Test Loss:", test_loss)
+            print("Test Accuracy:", test_accuracy)
+            print("Test Precision:", test_precision)
+            print("Test Recall:", test_recall)
+            
+            # # Quantization
+            # quantization_tflite(pruned_model, modelPath)
+            
+            # # Evaluate and store quantized model
+            # # model_predict_store(quantized_model, 
+            # #                     'quantized_model',
+            # #                     modelPath,
+            # #                     x_test, 
+            # #                     y_test, 
+            # #                     labels)
 
+
+## Plot learning curve to investigate training
+# @param                     Training history
+# @return                    Two learning curve plots of accuracy and loss
+def plot_learning_curve(history, path):
+    # Plot training & validation accuracy values
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.savefig(os.path.join(path, 'learning_curve_accuracy'))
+
+    # Plot training & validation loss values
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.savefig(os.path.join(path, 'learning_curve_loss'))
 
     
     
