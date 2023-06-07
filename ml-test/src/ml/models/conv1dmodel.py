@@ -205,6 +205,7 @@ def storeConv1DModel(path,
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
     plt.savefig(os.path.join(path, 'confusion_matrix'))
+    plt.clf()
 
     return
 

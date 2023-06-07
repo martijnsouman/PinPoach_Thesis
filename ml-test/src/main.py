@@ -189,16 +189,16 @@ def main():
 
     # Split the dataset
     xTest, yTest, xTrain, yTrain, layerTest, layerTrain = dataHandler.splitInputAndOutputLists(xData, yData, layerData)
-    # print("xTest.shape: ", xTest.shape)
-    # print("yTest.shape: ", yTest.shape)
-    # print("xTrain.shape: ", xTrain.shape)
-    # print("yTrain.shape: ", yTrain.shape)
+    print("xTest.shape: ", xTest.shape)
+    print("yTest.shape: ", yTest.shape)
+    print("xTrain.shape: ", xTrain.shape)
+    print("yTrain.shape: ", yTrain.shape)
     # print(type(xTest))
     
     # Training Simple CNN model
-    epoch_count = 20  # 100
+    epoch_count = 2  # 30
     # # Define convolutional layer range
-    # convRange = [4, 5]  # range(3, 8) for MFCC, (1, 3) for 1D
+    # convRange = [5]  # range(3, 8) for MFCC, (1, 3) for 1D
     # # Define dense layer range
     # denseRange = [1, 3, 5]  # range(5, 0, -1)
     # # Usage of Keras Hypermodel
