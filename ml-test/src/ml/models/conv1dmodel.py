@@ -200,7 +200,7 @@ def storeConv1DModel(path,
     df.to_csv(os.path.join(path, 'performance.csv'), index=False)
     
     # Write confustion matrix to png 
-    sn.heatmap(cm_df, annot=True, annot_kws={"size": 32})
+    sn.heatmap(cm_df, annot=True, annot_kws={"size": 32}, fmt='d')
     plt.title("Confusion matrix")
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
