@@ -193,42 +193,45 @@ def main():
     print("yTest.shape: ", yTest.shape)
     print("xTrain.shape: ", xTrain.shape)
     print("yTrain.shape: ", yTrain.shape)
-    # print(type(xTest))
+    # # Save xTest and yTest arrays
+    # np_save_dir = "C:/Users/maris/Documents/DataScience/Thesis/PinPoach_Thesis/Data"
+    # np.save(np_save_dir + "/xTest.npy", xTest)
+    # np.save(np_save_dir + "/yTest.npy", yTest)
     
     # Training Simple CNN model
-    epoch_count = 2  # 30
-    # # Define convolutional layer range
-    # convRange = [5]  # range(3, 8) for MFCC, (1, 3) for 1D
-    # # Define dense layer range
-    # denseRange = [1, 3, 5]  # range(5, 0, -1)
-    # # Usage of Keras Hypermodel
-    # hypModel = True
-    # # Build and train all models in specified ranges
-    # MainConv1DModel(
-    #     modelsPath,
-    #     convRange, 
-    #     denseRange, 
-    #     xTrain, 
-    #     yTrain, 
-    #     xTest, 
-    #     yTest, 
-    #     layerTrain,
-    #     labels,
-    #     epoch_count,
-    #     hypModel)
+    epoch_count = 10  # 30 voor compression or 10 for model training
+    # Define convolutional layer range
+    convRange = [1]  # range(3, 8) for MFCC, (1, 3) for 1D
+    # Define dense layer range
+    denseRange = [1, 3, 5]  # range(5, 0, -1)
+    # Usage of Keras Hypermodel
+    hypModel = True
+    # Build and train all models in specified ranges
+    MainConv1DModel(
+        modelsPath,
+        convRange, 
+        denseRange, 
+        xTrain, 
+        yTrain, 
+        xTest, 
+        yTest, 
+        layerTrain,
+        labels,
+        epoch_count,
+        hypModel)
     
-    # Compress models
-    channelRanking = 'magnitude' # Either 'magnitude' or 'taylor' TAYLOR DOES NOT WORK
-    mainCompression(modelsPath,
-                    xTrain,
-                    yTrain,
-                    xTest,
-                    yTest,
-                    layerTrain,
-                    layerTest,
-                    labels,
-                    epoch_count,
-                    channelRanking)     
+    # # Compress models
+    # channelRanking = 'magnitude' # Either 'magnitude' or 'taylor' TAYLOR DOES NOT WORK
+    # mainCompression(modelsPath,
+    #                 xTrain,
+    #                 yTrain,
+    #                 xTest,
+    #                 yTest,
+    #                 layerTrain,
+    #                 layerTest,
+    #                 labels,
+    #                 epoch_count,
+    #                 channelRanking)     
   
 
 

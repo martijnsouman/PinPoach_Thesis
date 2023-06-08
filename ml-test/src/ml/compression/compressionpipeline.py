@@ -54,6 +54,7 @@ def mainCompression(models_path,
             print("F1-score: ", f1_sc)
             
             # Try out new sparsity
+            # https://www.tensorflow.org/model_optimization/guide/pruning/pruning_with_keras
             prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
             
             # Define end step
